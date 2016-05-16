@@ -13,9 +13,10 @@ class PathAction implements \JsonSerializable
     private $m_description;
     private $m_parameters = array();
     private $m_responses;
+    private $m_tags;
     
     
-    public function __construct($type, $summary, $description)
+    public function __construct($type, $summary, $description, array $tags=array())
     {
         $acceptable_types = array("get", "post", "put", "patch", "delete");
         
@@ -27,6 +28,7 @@ class PathAction implements \JsonSerializable
         $this->m_type = $type;
         $this->m_summary = $summary;
         $this->m_description = $description;
+        $this->m_tags = $tags;
     }
     
     
@@ -47,6 +49,7 @@ class PathAction implements \JsonSerializable
     public function jsonSerialize()
     {
         $arrayForm = array(
+            'tags' => $this->m_tags,
             'summary' => $this->m_summary,
             'description' => $this->m_description,
             'parameters' => $this->m_parameters,
@@ -58,7 +61,6 @@ class PathAction implements \JsonSerializable
             /* @var $response Response */
             $arrayForm['responses'][$response->get_code()] = $response;
         }
-        
         
         return $arrayForm;
     }
