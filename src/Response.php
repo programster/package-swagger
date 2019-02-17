@@ -4,7 +4,7 @@
  * 
  */
 
-namespace iRAP\Swagger;
+namespace Programster\Swagger;
 
 class Response implements \JsonSerializable
 {

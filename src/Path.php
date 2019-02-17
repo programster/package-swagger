@@ -4,7 +4,7 @@
  * Class for creating a path object in the swagger documentation.
  */
 
-namespace iRAP\Swagger;
+namespace Programster\Swagger;
 
 class Path implements \JsonSerializable
 {
