@@ -37,6 +37,7 @@ class Path implements \JsonSerializable
         return $arrayForm;
     }
     
+    
     # Accessors
-    public function get_route() { return $this->m_route; }
+    public function getRoute() { return $this->m_route; }
 }
