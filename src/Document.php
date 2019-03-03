@@ -17,33 +17,42 @@ class Document
     private $m_version;
     private $m_paths;
     private $m_definitions;
-    private $m_swagger_version;
+    private $m_swaggerVersion;
     private $m_document_version;
     
-    public function __construct($title, $description, $host, $document_version, $schemes = array("https"), $basePath = "/", $produces = array(), $swagger_version = "2.0")
+    public function __construct(
+        string $title, 
+        string $description, 
+        string $host, 
+        string $documentVersion, 
+        $schemes = array("https"), 
+        $basePath = "/", 
+        $produces = array(), 
+        PathCollection $paths,
+        DefinitionCollection $definitions
+    )
     {
         $this->m_title = $title;
         $this->m_description = $description;
         $this->m_host = $host;
-        $this->m_document_version = $document_version;
+        $this->m_document_version = $documentVersion;
         $this->m_schemes = $schemes;
         $this->m_basePath = $basePath;
         $this->m_produces = $produces;
-        $this->m_swagger_version = $swagger_version;
+        $this->m_swaggerVersion = "2.0";
         $this->m_definitions = array();
         $this->m_paths = array();
-    }
-    
-    
-    public function addPath(Path $path)
-    {
-        $this->m_paths[$path->get_route()] = $path;
-    }
-    
-    
-    public function addDefinition(Definition $def)
-    {
-        $this->m_definitions[$def->get_name()] = $def;
+        
+        foreach ($paths as $path)
+        {
+            /* @var $path Path */
+            $this->m_paths[$path->getRoute()] = $path;
+        }
+        
+        foreach ($definitions as $definition)
+        {
+            $this->m_definitions[$def->get_name()] = $def;
+        }
     }
     
     
@@ -54,7 +63,7 @@ class Document
     public function __toString()
     {
         $document = new \stdClass();
-        $document->swagger = $this->m_swagger_version;
+        $document->swagger = $this->m_swaggerVersion;
         
         $document->info = new \stdClass();
         $document->info->title = $this->m_title;
