@@ -25,11 +25,11 @@ class Document
         string $description, 
         string $host, 
         string $documentVersion, 
+        PathCollection $paths,
+        DefinitionCollection $definitions,
         $schemes = array("https"), 
         $basePath = "/", 
-        $produces = array(), 
-        PathCollection $paths,
-        DefinitionCollection $definitions
+        $produces = array()
     )
     {
         $this->m_title = $title;
