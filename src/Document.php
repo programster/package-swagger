@@ -51,7 +51,7 @@ class Document
         
         foreach ($definitions as $definition)
         {
-            $this->m_definitions[$def->get_name()] = $def;
+            $this->m_definitions[$definition->get_name()] = $definition;
         }
     }
     

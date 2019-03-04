@@ -13,22 +13,13 @@ class Parameter implements \JsonSerializable
     private $m_required; // "required": true,
     private $m_type; //"type": "integer",
     private $m_in; //"in": "formData"
-        
-    public function __construct($name, $description, $required, $type, $in)
+    
+    
+    public function __construct($name, $description, $required, Type $type, ParameterLocation $in)
     {
         if ($required !== TRUE && $required !== FALSE)
         {
             throw new \Exception("required needs to be a boolean value");
-        }
-        
-        if (!in_array($type, $this->getAllowedTypes()))
-        {
-            throw new \Exception("Invalid type specified: " . $type);
-        }
-        
-        if (!in_array($in, $this->getAllowedInValues()))
-        {
-            throw new \Exception("Invalid 'in' value specified: " . $in);
         }
         
         $this->m_name = $name;
@@ -39,27 +30,6 @@ class Parameter implements \JsonSerializable
     }
     
     
-    private function getAllowedTypes()
-    {
-        return array(
-            'integer',
-            'string',
-            'boolean',
-            'number'
-        );
-    }
-    
-    
-    public function getAllowedInValues()
-    {
-        return array(
-            'formData',
-            'query',
-            'body', 
-            "path"
-        );
-    }
-
     public function jsonSerialize()
     {
         return array(
@@ -67,7 +37,7 @@ class Parameter implements \JsonSerializable
             'description' => $this->m_description,
             'required' => $this->m_required,
             'type' => $this->m_type,
-            'in' => $this->m_in
+            'in' => (string) $this->m_in
         );
     }
     

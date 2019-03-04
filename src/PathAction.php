@@ -11,12 +11,19 @@ class PathAction implements \JsonSerializable
     private $m_type;
     private $m_summary;
     private $m_description;
-    private $m_parameters = array();
+    private $m_parameters;
     private $m_responses;
     private $m_tags;
     
     
-    public function __construct($type, $summary, $description, array $tags=array())
+    public function __construct(
+        string $type, 
+        string $summary, 
+        string $description, 
+        ParameterCollection $parameters, 
+        ResponseCollection $responses,
+        array $tags = array()
+    )
     {
         $acceptable_types = array("get", "post", "put", "patch", "delete");
         
@@ -25,27 +32,20 @@ class PathAction implements \JsonSerializable
             throw new Exception("Invalid type specified: " . $type);
         }
         
+        if (count($responses) == 0)
+        {
+            throw new Exception("Paths need at least one response");
+        }
+        
         $this->m_type = $type;
         $this->m_summary = $summary;
         $this->m_description = $description;
         $this->m_tags = $tags;
+        $this->m_parameters = $parameters;
+        $this->m_responses = $responses;
     }
     
     
-    public function addParameter(Parameter $parameter)
-    {
-        $this->m_parameters[] = $parameter;
-    }
-    
-    public function addResponse(Response $response)
-    {
-        $this->m_responses[] = $response;
-    }
-    
-    
-    public function get_type(){ return $this->m_type; }
-
-
     public function jsonSerialize()
     {
         $arrayForm = array(
@@ -64,5 +64,7 @@ class PathAction implements \JsonSerializable
         
         return $arrayForm;
     }
-
+    
+    
+    public function getType(){ return $this->m_type; }
 }

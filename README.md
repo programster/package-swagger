@@ -1,4 +1,6 @@
-A PHP package to simplify the generation of swagger JSON documentation.
+A PHP package to simplify the generation of Swagger 2.0 JSON documentation.
+
+The [specification for Swagger 2.0](https://github.com/OAI/OpenAPI-Specification/blob/master/versions/2.0.md) can be found here.
 
 ## Example Usage
 Below is a really basic example of using the code to get you started. It should be pretty self explanatory if you 
@@ -42,4 +44,6 @@ file_put_contents(__DIR__ . '/swagger.json', $document);
 print "Swagger documentation updated. Don't forget to commit." . PHP_EOL;
 ```
 
-If you were to run that script, you would generate a `swagger.json` output file which you can link to from [a swagger-UI page](https://petstore.swagger.io/) (as long as you enable CORS), or you can paste it directly into an online [swagger editor](https://editor.swagger.io/).
+If you were to run that script, you would generate a `swagger.json` output file which you can link to from 
+[a swagger-UI page](https://petstore.swagger.io/) (as long as you enable CORS), or you can paste it directly into an 
+online [swagger editor](https://editor.swagger.io/).

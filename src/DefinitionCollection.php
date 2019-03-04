@@ -6,7 +6,7 @@
 
 namespace Programster\Swagger;
 
-final class DefinitionCollection extends ArrayObject
+final class DefinitionCollection extends \ArrayObject
 {
     public function __construct(Definition ...$definitions)
     {

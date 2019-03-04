@@ -12,24 +12,26 @@ class Definition implements \JsonSerializable
     private $m_description;
     private $m_properties;
     
-    public function __construct($name, $description)
+    
+    public function __construct($name, $description, DefinitionProperty ...$properties)
     {
         $this->m_name = $name;
         $this->m_description = $description;
         $this->m_properties = array();
-    }
-    
-    
-    public function addProperty($name, $type, $description="")
-    {
-        $propertyArrayForm = array("type" => $type);
         
-        if ($description !== "")
+        
+        foreach ($properties as $property)
         {
-            $propertyArrayForm["description"] = $description;
+            $propertyArrayForm = array("type" => $property->getType());
+        
+            if ($property->getDescription() !== "")
+            {
+                $propertyArrayForm["description"] = $property->getDescription();
+            }
+            
+            $this->m_properties[$property->getName()] = $propertyArrayForm;
         }
         
-        $this->m_properties[$name] = $propertyArrayForm;
     }
     
     

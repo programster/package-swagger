@@ -6,7 +6,7 @@
 
 namespace Programster\Swagger;
 
-final class PathCollection extends ArrayObject
+final class PathCollection extends \ArrayObject
 {
     public function __construct(Path ...$paths)
     {
