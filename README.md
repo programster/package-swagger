@@ -19,7 +19,13 @@ Once you have managed to create it, you can just print it.
 
 require_once(__DIR__ . '/vendor/autoload.php');
 
+
+
+
 // add a path/endpoint for users
+
+
+
 $userReference = array();
 $userReference['$ref'] = "#definitions/user";
 
@@ -52,7 +58,7 @@ $createUserParameters = new Programster\Swagger\ParameterCollection($firstNamePa
 
 // add a "POST" action to the users path for creating a user
 $createUserAction = new Programster\Swagger\PathAction(
-    "post", 
+    Programster\Swagger\Method::createPost(), 
     "Add a user to the system", 
     "Add a user to the system",
     $createUserParameters,
@@ -73,6 +79,7 @@ $document = new \Programster\Swagger\Document(
     $paths, 
     $definitions
 );
+
 
 file_put_contents(__DIR__ . '/swagger.json', $document);
 print "Swagger documentation updated. Don't forget to commit." . PHP_EOL;

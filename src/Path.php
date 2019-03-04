@@ -15,11 +15,7 @@ class Path implements \JsonSerializable
     public function __construct($route, PathAction ...$actions)
     {
         $this->m_route = $route;
-        
-        foreach ($actions as $action)
-        {
-            $this->m_actions[$action->getType()] = $action;
-        }
+        $this->m_actions = $actions;
     }
     
     
@@ -27,10 +23,13 @@ class Path implements \JsonSerializable
     {
         $arrayForm = array();
         
-        foreach ($this->m_actions as  $action)
+        foreach ($this->m_actions as $action)
         {
+            /* @var $action PathAction */
+            $methodString = (string)$action->getMethod();
+            
             /* @var $action PathAction*/
-            $arrayForm[$action->getType()] = $action;
+            $arrayForm[$methodString] = $action;
         }
         
         return $arrayForm;

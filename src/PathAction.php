@@ -8,7 +8,7 @@ namespace Programster\Swagger;
 
 class PathAction implements \JsonSerializable
 {
-    private $m_type;
+    private $m_method;
     private $m_summary;
     private $m_description;
     private $m_parameters;
@@ -17,7 +17,7 @@ class PathAction implements \JsonSerializable
     
     
     public function __construct(
-        string $type, 
+        Method $method, 
         string $summary, 
         string $description, 
         ParameterCollection $parameters, 
@@ -25,19 +25,12 @@ class PathAction implements \JsonSerializable
         array $tags = array()
     )
     {
-        $acceptable_types = array("get", "post", "put", "patch", "delete");
-        
-        if (!in_array($type, $acceptable_types))
-        {
-            throw new Exception("Invalid type specified: " . $type);
-        }
-        
         if (count($responses) == 0)
         {
             throw new Exception("Paths need at least one response");
         }
         
-        $this->m_type = $type;
+        $this->m_method = $method;
         $this->m_summary = $summary;
         $this->m_description = $description;
         $this->m_tags = $tags;
@@ -66,5 +59,5 @@ class PathAction implements \JsonSerializable
     }
     
     
-    public function getType(){ return $this->m_type; }
+    public function getMethod() : Method { return $this->m_method; }
 }

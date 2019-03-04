@@ -46,7 +46,7 @@ $createUserParameters = new Programster\Swagger\ParameterCollection($firstNamePa
 
 // add a "POST" action to the users path for creating a user
 $createUserAction = new Programster\Swagger\PathAction(
-    "post", 
+    Programster\Swagger\Method::createPost(), 
     "Add a user to the system", 
     "Add a user to the system",
     $createUserParameters,
@@ -55,8 +55,6 @@ $createUserAction = new Programster\Swagger\PathAction(
 
 $usersPath = new \Programster\Swagger\Path("/users", $createUserAction);
 $paths = new Programster\Swagger\PathCollection($usersPath);
-
-
 
 
 $definitions = new Programster\Swagger\DefinitionCollection($userDefinition);
