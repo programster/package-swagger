@@ -22,7 +22,7 @@ class Definition implements \JsonSerializable
         
         foreach ($properties as $property)
         {
-            $propertyArrayForm = array("type" => $property->getType());
+            $propertyArrayForm = array("type" => (string) $property->getType());
         
             if ($property->getDescription() !== "")
             {
@@ -44,6 +44,6 @@ class Definition implements \JsonSerializable
     }
     
     
-    public function get_name() { return $this->m_name; }
+    public function getName() { return $this->m_name; }
 
 }

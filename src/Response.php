@@ -13,11 +13,16 @@ class Response implements \JsonSerializable
     private $m_schema = NULL; # name of object to return in schema.
     
     
-    public function __construct($code, $description)
+    public function __construct($code, $description, Definition $responseObjectDefinition = null)
     {
         if (!in_array($code, $this->getAcceptableResponseCodes()))
         {
             throw new Exception("Invalid response code: " . $code);
+        }
+        
+        if ($responseObjectDefinition !== null)
+        {
+            $this->m_schema = array('$ref' => '#/definitions/' . $responseObjectDefinition->getName());
         }
         
         $this->m_code = $code;
@@ -36,17 +41,6 @@ class Response implements \JsonSerializable
             500, 501, 502, 503, 504, 505, 
             506, 507, 509, 510,
         );
-    }
-    
-    
-    public function addSchema($schema)
-    {
-        if (!is_array($schema) && !is_object($schema))
-        {
-            throw new Exception('schema needs to be a stdclass or an assoc array.');
-        }
-        
-        $this->m_schema = $schema;
     }
     
     

@@ -23,7 +23,7 @@ class DefinitionProperty
     
     # Accessors
     public function getName() { return $this->m_name; }
-    public function getType() { return $this->m_type; }
+    public function getType() : Type { return $this->m_type; }
     public function getDescription() { return $this->m_description; }
 }
 

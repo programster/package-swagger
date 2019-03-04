@@ -51,7 +51,7 @@ class Document
         
         foreach ($definitions as $definition)
         {
-            $this->m_definitions[$definition->get_name()] = $definition;
+            $this->m_definitions[$definition->getName()] = $definition;
         }
     }
     
@@ -73,6 +73,7 @@ class Document
         $document->host = "vida-api.irap.org";
         $document->schemes = array("https");
         $document->basePath = "/";
+        $document->consumes = array("multipart/form-data");
         $document->produces = array("application/json");
         
         # Paths is required, even if empty

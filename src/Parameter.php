@@ -36,7 +36,7 @@ class Parameter implements \JsonSerializable
             'name' => $this->m_name,
             'description' => $this->m_description,
             'required' => $this->m_required,
-            'type' => $this->m_type,
+            'type' => (string) $this->m_type,
             'in' => (string) $this->m_in
         );
     }

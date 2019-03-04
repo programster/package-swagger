@@ -14,15 +14,24 @@ require_once(__DIR__ . '/vendor/autoload.php');
 
 
 
-$successResponse = new \Programster\Swagger\Response(200, "User successfully created.");
+$userReference = array();
+$userReference['$ref'] = "#definitions/user";
 
+$userProperties = array(
+    new Programster\Swagger\DefinitionProperty("id", \Programster\Swagger\Type::createInt(), "The ID of the user."),
+    new Programster\Swagger\DefinitionProperty("first_name", \Programster\Swagger\Type::createString(), "The first name of the user."),
+    new Programster\Swagger\DefinitionProperty("last_name", \Programster\Swagger\Type::createString(), "The last name of the user."),
+);
+
+$userDefinition = new Programster\Swagger\Definition("User", "A user object", ...$userProperties);
+$successResponse = new \Programster\Swagger\Response(200, "User successfully created.", $userDefinition);
 
 $firstNameParameter = new \Programster\Swagger\Parameter(
     "first_name", 
     "The first name of the user", 
     true, 
     \Programster\Swagger\Type::createString(), 
-    Programster\Swagger\ParameterLocation::createBody()
+    Programster\Swagger\ParameterLocation::createFormData()
 );
 
 $lastNameParameter = new \Programster\Swagger\Parameter(
@@ -30,7 +39,7 @@ $lastNameParameter = new \Programster\Swagger\Parameter(
     "The last name of the user", 
     true, 
     \Programster\Swagger\Type::createString(), 
-    Programster\Swagger\ParameterLocation::createBody()
+    Programster\Swagger\ParameterLocation::createFormData()
 );
 
 $createUserParameters = new Programster\Swagger\ParameterCollection($firstNameParameter, $lastNameParameter);
@@ -48,13 +57,7 @@ $usersPath = new \Programster\Swagger\Path("/users", $createUserAction);
 $paths = new Programster\Swagger\PathCollection($usersPath);
 
 
-$userProperties = array(
-    new Programster\Swagger\DefinitionProperty("id", \Programster\Swagger\Type::createInt(), "The ID of the user."),
-    new Programster\Swagger\DefinitionProperty("first_name", \Programster\Swagger\Type::createString(), "The first name of the user."),
-    new Programster\Swagger\DefinitionProperty("last_name", \Programster\Swagger\Type::createString(), "The last name of the user."),
-);
 
-$userDefinition = new Programster\Swagger\Definition("User", "A user object", ...$userProperties);
 
 $definitions = new Programster\Swagger\DefinitionCollection($userDefinition);
 

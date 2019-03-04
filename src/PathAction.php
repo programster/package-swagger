@@ -52,7 +52,7 @@ class PathAction implements \JsonSerializable
             'tags' => $this->m_tags,
             'summary' => $this->m_summary,
             'description' => $this->m_description,
-            'parameters' => $this->m_parameters,
+            'parameters' => $this->m_parameters->getArrayCopy(),
             'responses' => array()
         );
         
