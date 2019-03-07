@@ -13,24 +13,87 @@ class Response implements \JsonSerializable
     private $m_schema = NULL; # name of object to return in schema.
     
     
-    public function __construct($code, $description, Definition $responseObjectDefinition = null)
+    private function __construct() {}
+    
+    
+    /**
+     * Create a response that doesn't return any object/array.
+     * @param int $code - the HTML response code
+     * @param string $description
+     * @param \Programster\Swagger\Definition $definition
+     * @return \Programster\Swagger\Response
+     * @throws Exception
+     */
+    public static function createBasicResponse(int $code, string $description) : Response
     {
-        if (!in_array($code, $this->getAcceptableResponseCodes()))
+        $response = new Response();
+        
+        if (!in_array($code, Response::getAcceptableResponseCodes()))
         {
             throw new Exception("Invalid response code: " . $code);
         }
         
-        if ($responseObjectDefinition !== null)
-        {
-            $this->m_schema = array('$ref' => '#/definitions/' . $responseObjectDefinition->getName());
-        }
-        
-        $this->m_code = $code;
-        $this->m_description = $description;
+        $response->m_code = $code;
+        $response->m_description = $description;
+        return $response;
     }
     
     
-    public function getAcceptableResponseCodes()
+    /**
+     * Create a response that returns a single object
+     * @param int $code - the HTML response code
+     * @param string $description
+     * @param \Programster\Swagger\Definition $definition
+     * @return \Programster\Swagger\Response
+     * @throws Exception
+     */
+    public static function createObjectResponse(int $code, string $description, Definition $definition) : Response
+    {
+        $response = new Response();
+        
+        if (!in_array($code, Response::getAcceptableResponseCodes()))
+        {
+            throw new Exception("Invalid response code: " . $code);
+        }
+        
+        $response->m_schema = array('$ref' => '#/definitions/' . $definition->getName());
+        $response->m_code = $code;
+        $response->m_description = $description;
+        return $response;
+    }
+    
+    
+    /**
+     * Create a response that returns an array of objects.
+     * @param int $code - the HTML response code
+     * @param string $description
+     * @param \Programster\Swagger\Definition $definition
+     * @return \Programster\Swagger\Response
+     * @throws Exception
+     */
+    public static function createArrayOfObjectsResponse(int $code, string $description, Definition $definition) : Response
+    {
+        $response = new Response();
+        
+        if (!in_array($code, Response::getAcceptableResponseCodes()))
+        {
+            throw new Exception("Invalid response code: " . $code);
+        }
+        
+        $response->m_schema = array(
+            "type" => "array",
+            "items" => array(
+                '$ref' => '#/definitions/' . $definition->getName()
+            )
+        );
+        
+        $response->m_code = $code;
+        $response->m_description = $description;
+        return $response;
+    }
+    
+    
+    private static function getAcceptableResponseCodes()
     {
         return array(
             100, 101, 102, 
@@ -57,5 +120,4 @@ class Response implements \JsonSerializable
     
     
     public function get_code() { return $this->m_code; }
-
 }

@@ -31,7 +31,6 @@ class Definition implements \JsonSerializable
             
             $this->m_properties[$property->getName()] = $propertyArrayForm;
         }
-        
     }
     
     
