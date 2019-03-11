@@ -70,9 +70,9 @@ class Document
         $document->info->description = $this->m_description;
         $document->info->version = $this->m_document_version;
         
-        $document->host = "vida-api.irap.org";
+        $document->host = $this->m_host;
         $document->schemes = array("https");
-        $document->basePath = "/";
+        $document->basePath = $this->m_basePath;
         $document->consumes = array("multipart/form-data");
         $document->produces = array("application/json");
         
