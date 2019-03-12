@@ -74,7 +74,7 @@ class Document
         $document->info->version = $this->m_document_version;
         
         $document->host = $this->m_host;
-        $document->schemes = array("https");
+        $document->schemes = $this->m_schemes;
         $document->basePath = $this->m_basePath;
         $document->consumes = array("multipart/form-data");
         $document->produces = array("application/json");
