@@ -6,7 +6,7 @@
 
 namespace Programster\Swagger;
 
-class DefinitionProperty
+class DefinitionProperty implements DefinitionPropertyInterface
 {
     private $m_name;
     private $m_type;
@@ -21,9 +21,19 @@ class DefinitionProperty
     }
     
     
+    public function jsonSerialize() 
+    {
+        $propertyArrayForm = array("type" => (string) $this->m_type);
+        
+        if ($this->m_description !== "")
+        {
+            $propertyArrayForm["description"] = $this->m_description;
+        }
+        
+        return $propertyArrayForm;
+    }
+    
     # Accessors
-    public function getName() { return $this->m_name; }
-    public function getType() : Type { return $this->m_type; }
-    public function getDescription() { return $this->m_description; }
+    public function getName() : string { return $this->m_name; }
 }
 
