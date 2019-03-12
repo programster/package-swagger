@@ -53,17 +53,6 @@ final class SecurityScheme implements \JsonSerializable
     
     
     /**
-     * No security. Anybody can send API requests.
-     * @return \Programster\Swagger\Security
-     */
-    public static function createNone() : SecurityScheme
-    {
-        $security = new SecurityScheme();
-        return $security;
-    }
-    
-    
-    /**
      * Create an OAuth 2 security scheme for the API.
      * @param string $schemeName - the name for this schemne, such as "UserSecurity"
      * @param string $authorizationUrl

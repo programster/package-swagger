@@ -13,14 +13,31 @@ class Document
     private $m_host;
     private $m_schemes;
     private $m_basePath;
-    private $m_produces;
     private $m_version;
     private $m_paths;
     private $m_definitions;
     private $m_swaggerVersion;
     private $m_document_version;
     private $m_security;
+    private $m_securitySchemes;
     
+    
+    /**
+     * Create your swagger document.
+     * @param string $title - the Title of your API
+     * @param string $description - a description for your API
+     * @param string $host - Where your API is located (and the "try it out" buttons will send requests). It is a good
+     *                       idea to have this pointing at a sandbox.
+     * @param string $documentVersion - e.g. "1.0.0"
+     * @param \Programster\Swagger\PathCollection $paths - a collection of all your P
+     * @param \Programster\Swagger\DefinitionCollection $definitions
+     * @param \Programster\Swagger\SecuritySchemeCollection $securitySchemes - collection of all the security schemes
+     *                                                                         (this can be empty if you have no security)
+     * @param array $security - optionally specify something like ["userSecurity" => array()] to apply the securityScheme
+     *                          that was called "userSecurity" to the whole API.
+     * @param array $schemes - should be an array of ["https"], or ["https", "http"]
+     * @param string $basePath - the base path of your api. E.g. "/" or "/api" etc.
+     */
     public function __construct(
         string $title, 
         string $description, 
@@ -28,10 +45,10 @@ class Document
         string $documentVersion, 
         PathCollection $paths,
         DefinitionCollection $definitions,
-        SecurityScheme $security,
-        $schemes = array("https"), 
-        $basePath = "/", 
-        $produces = array()
+        SecuritySchemeCollection $securitySchemes,
+        array $security = array(),
+        array $schemes = array("https"), 
+        string $basePath = "/"
     )
     {
         $this->m_title = $title;
@@ -39,11 +56,11 @@ class Document
         $this->m_host = $host;
         $this->m_document_version = $documentVersion;
         $this->m_schemes = $schemes;
-        $this->m_basePath = $basePath;
-        $this->m_produces = $produces;
+        $this->m_basePath = $basePath;;
         $this->m_swaggerVersion = "2.0";
         $this->m_definitions = array();
         $this->m_paths = array();
+        $this->m_securitySchemes = $securitySchemes;
         $this->m_security = $security;
         
         foreach ($paths as $path)
@@ -79,11 +96,18 @@ class Document
         $document->consumes = array("multipart/form-data");
         $document->produces = array("application/json");
         
-        $securityArray = $this->m_security->jsonSerialize();
-        
-        if (count($securityArray) !== 0)
+        if (count($this->m_securitySchemes) > 0)
         {
-            $document->securityDefinitions = array($this->m_security->getSchemeName() => $this->m_security);
+            $schemesArray = array();
+            
+            foreach ($this->m_securitySchemes as $scheme)
+            {
+                /* @var $scheme SecurityScheme */
+                $schemesArray[$scheme->getSchemeName()] = $scheme->jsonSerialize();
+            }
+            
+            $document->securityDefinitions = $schemesArray;
+            $document->security = array($this->m_security);
         }
         
         # Paths is required, even if empty

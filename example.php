@@ -55,9 +55,8 @@ $createUserAction = new Programster\Swagger\PathAction(
 
 $usersPath = new \Programster\Swagger\Path("/users", $createUserAction);
 $paths = new Programster\Swagger\PathCollection($usersPath);
-
-
 $definitions = new Programster\Swagger\DefinitionCollection($userDefinition);
+$basicAuth = Programster\Swagger\SecurityScheme::createBasicAuth("basicAuth");
 
 $document = new \Programster\Swagger\Document(
     "My RESTful API", 
@@ -66,7 +65,8 @@ $document = new \Programster\Swagger\Document(
     "1.0.0", 
     $paths, 
     $definitions,
-    Programster\Swagger\SecurityScheme::createBasicAuth("generalSecurity")
+    new \Programster\Swagger\SecuritySchemeCollection($basicAuth),
+    array("basicAuth" => array())
 );
 
 
