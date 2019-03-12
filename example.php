@@ -24,7 +24,7 @@ $userProperties = array(
 );
 
 $userDefinition = new Programster\Swagger\Definition("User", "A user object", ...$userProperties);
-$successResponse = new \Programster\Swagger\Response(200, "User successfully created.", $userDefinition);
+$successResponse = Programster\Swagger\Response::createObjectResponse(200, "User successfully created.", $userDefinition);
 
 $firstNameParameter = new \Programster\Swagger\Parameter(
     "first_name", 
@@ -65,7 +65,8 @@ $document = new \Programster\Swagger\Document(
     "www.myAPiHOstname.com", 
     "1.0.0", 
     $paths, 
-    $definitions
+    $definitions,
+    Programster\Swagger\SecurityScheme::createBasicAuth("generalSecurity")
 );
 
 

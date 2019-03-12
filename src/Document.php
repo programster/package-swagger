@@ -19,6 +19,7 @@ class Document
     private $m_definitions;
     private $m_swaggerVersion;
     private $m_document_version;
+    private $m_security;
     
     public function __construct(
         string $title, 
@@ -27,6 +28,7 @@ class Document
         string $documentVersion, 
         PathCollection $paths,
         DefinitionCollection $definitions,
+        SecurityScheme $security,
         $schemes = array("https"), 
         $basePath = "/", 
         $produces = array()
@@ -42,6 +44,7 @@ class Document
         $this->m_swaggerVersion = "2.0";
         $this->m_definitions = array();
         $this->m_paths = array();
+        $this->m_security = $security;
         
         foreach ($paths as $path)
         {
@@ -75,6 +78,13 @@ class Document
         $document->basePath = $this->m_basePath;
         $document->consumes = array("multipart/form-data");
         $document->produces = array("application/json");
+        
+        $securityArray = $this->m_security->jsonSerialize();
+        
+        if (count($securityArray) !== 0)
+        {
+            $document->securityDefinitions = array($this->m_security->getSchemeName() => $this->m_security);
+        }
         
         # Paths is required, even if empty
         if (count($this->m_paths) > 0)
