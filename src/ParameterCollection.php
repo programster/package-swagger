@@ -22,7 +22,7 @@ final class ParameterCollection extends \ArrayObject
         }
         else
         {
-            throw new Exception("Cannot append non Parameter to a " . __CLASS__);
+            throw new \Exception("Cannot append non Parameter to a " . __CLASS__);
         }
     }
 
@@ -35,7 +35,7 @@ final class ParameterCollection extends \ArrayObject
         }
         else
         {
-            throw new Exception("Cannot add a non Parameter value to a " . __CLASS__);
+            throw new \Exception("Cannot add a non Parameter value to a " . __CLASS__);
         }
     }
 }

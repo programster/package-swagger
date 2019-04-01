@@ -27,7 +27,7 @@ class PathAction implements \JsonSerializable
     {
         if (count($responses) == 0)
         {
-            throw new Exception("Paths need at least one response");
+            throw new \Exception("Paths need at least one response");
         }
         
         $this->m_method = $method;

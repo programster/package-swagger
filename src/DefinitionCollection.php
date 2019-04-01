@@ -22,7 +22,7 @@ final class DefinitionCollection extends \ArrayObject
         }
         else
         {
-            throw new Exception("Cannot append non Definition to a " . __CLASS__);
+            throw new \Exception("Cannot append non Definition to a " . __CLASS__);
         }
     }
 
@@ -35,7 +35,7 @@ final class DefinitionCollection extends \ArrayObject
         }
         else
         {
-            throw new Exception("Cannot add a non Definition value to a " . __CLASS__);
+            throw new \Exception("Cannot add a non Definition value to a " . __CLASS__);
         }
     }
 }

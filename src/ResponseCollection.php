@@ -22,7 +22,7 @@ final class ResponseCollection extends \ArrayObject
         }
         else
         {
-            throw new Exception("Cannot append non Response object to a " . __CLASS__);
+            throw new \Exception("Cannot append non Response object to a " . __CLASS__);
         }
     }
 
@@ -35,7 +35,7 @@ final class ResponseCollection extends \ArrayObject
         }
         else
         {
-            throw new Exception("Cannot add a non Response value to a " . __CLASS__);
+            throw new \Exception("Cannot add a non Response value to a " . __CLASS__);
         }
     }
 }
