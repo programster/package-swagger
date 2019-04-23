@@ -6,7 +6,7 @@
 
 namespace Programster\Swagger;
 
-final class Type
+final class Type implements \JsonSerializable
 {
     private $m_type;
     
@@ -23,7 +23,7 @@ final class Type
     public static function createNumber() { return new Type("number"); }
     
     
-    public function __toString() 
+    public function jsonSerialize() 
     {
         return $this->m_type;
     }

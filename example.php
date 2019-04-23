@@ -18,9 +18,9 @@ $userReference = array();
 $userReference['$ref'] = "#definitions/user";
 
 $userProperties = array(
-    new Programster\Swagger\DefinitionProperty("id", \Programster\Swagger\Type::createInt(), "The ID of the user."),
-    new Programster\Swagger\DefinitionProperty("first_name", \Programster\Swagger\Type::createString(), "The first name of the user."),
-    new Programster\Swagger\DefinitionProperty("last_name", \Programster\Swagger\Type::createString(), "The last name of the user."),
+    Programster\Swagger\DefinitionProperty::createBasic("id", \Programster\Swagger\Type::createInt(), "The ID of the user."),
+    Programster\Swagger\DefinitionProperty::createBasic("first_name", \Programster\Swagger\Type::createString(), "The first name of the user."),
+    Programster\Swagger\DefinitionProperty::createBasic("last_name", \Programster\Swagger\Type::createString(), "The last name of the user."),
 );
 
 $userDefinition = new Programster\Swagger\Definition("User", "A user object", ...$userProperties);
