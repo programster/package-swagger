@@ -10,7 +10,7 @@ class DefinitionPropertyArrayOfObjects implements DefinitionPropertyInterface
 {
     private $m_object;
 
-    
+
     public function __construct(string $name, Definition $object, bool $required)
     {
         $this->m_name = $name;
@@ -19,7 +19,7 @@ class DefinitionPropertyArrayOfObjects implements DefinitionPropertyInterface
     }
 
 
-    public function jsonSerialize()
+    public function jsonSerialize() : mixed
     {
         return array(
             'type' => 'array',

@@ -1,7 +1,7 @@
 <?php
 
-/* 
- * 
+/*
+ *
  */
 
 namespace Programster\Swagger;
@@ -14,13 +14,13 @@ class PathAction implements \JsonSerializable
     private $m_parameters;
     private $m_responses;
     private $m_tags;
-    
-    
+
+
     public function __construct(
-        Method $method, 
-        string $summary, 
-        string $description, 
-        ParameterCollection $parameters, 
+        Method $method,
+        string $summary,
+        string $description,
+        ParameterCollection $parameters,
         ResponseCollection $responses,
         array $tags = array()
     )
@@ -29,7 +29,7 @@ class PathAction implements \JsonSerializable
         {
             throw new \Exception("Paths need at least one response");
         }
-        
+
         $this->m_method = $method;
         $this->m_summary = $summary;
         $this->m_description = $description;
@@ -37,9 +37,9 @@ class PathAction implements \JsonSerializable
         $this->m_parameters = $parameters;
         $this->m_responses = $responses;
     }
-    
-    
-    public function jsonSerialize()
+
+
+    public function jsonSerialize() : mixed
     {
         $arrayForm = array(
             'tags' => $this->m_tags,
@@ -48,16 +48,16 @@ class PathAction implements \JsonSerializable
             'parameters' => $this->m_parameters->getArrayCopy(),
             'responses' => array()
         );
-        
+
         foreach ($this->m_responses as $response)
         {
             /* @var $response Response */
             $arrayForm['responses'][$response->get_code()] = $response;
         }
-        
+
         return $arrayForm;
     }
-    
-    
+
+
     public function getMethod() : Method { return $this->m_method; }
 }

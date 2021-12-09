@@ -46,7 +46,7 @@ final class DefinitionProperty implements DefinitionPropertyInterface
      * @param string $description - the description of the property
      * @return \Programster\Swagger\DefinitionProperty - the created property
      */
-    public static function createArray(string $name, Type $itemType, string $description, bool $required)
+    public static function createArray(string $name, Type $itemType, string $description, bool $required) : DefinitionProperty
     {
         $definitionProperty = new DefinitionProperty();
         $definitionProperty->m_name = $name;
@@ -58,7 +58,7 @@ final class DefinitionProperty implements DefinitionPropertyInterface
     }
 
 
-    public function jsonSerialize()
+    public function jsonSerialize() : mixed
     {
         $propertyArrayForm = array("type" => $this->m_type);
 

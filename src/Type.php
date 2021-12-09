@@ -23,7 +23,7 @@ final class Type implements \JsonSerializable
     public static function createNumber() { return new Type("number"); }
 
 
-    public function jsonSerialize()
+    public function jsonSerialize() : mixed
     {
         return $this->m_type;
     }

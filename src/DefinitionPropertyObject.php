@@ -10,7 +10,7 @@ class DefinitionPropertyObject implements DefinitionPropertyInterface
 {
     private $m_object;
     private bool $m_required;
-    
+
 
     public function __construct(string $name, Definition $object, bool $required)
     {
@@ -20,7 +20,7 @@ class DefinitionPropertyObject implements DefinitionPropertyInterface
     }
 
 
-    public function jsonSerialize()
+    public function jsonSerialize() : mixed
     {
         return array('$ref' => "#/definitions/" . $this->m_object->getName());
     }

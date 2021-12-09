@@ -37,11 +37,11 @@ class Parameter implements \JsonSerializable
     }
 
 
-    public function jsonSerialize()
+    public function jsonSerialize() : mixed
     {
         return $this->toArray();
     }
-    
+
 
     # Setters
     public function setRequired($flag) { $this->m_required = $flag; }

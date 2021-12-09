@@ -35,7 +35,7 @@ class Definition implements \JsonSerializable
     }
 
 
-    public function jsonSerialize()
+    public function jsonSerialize() : mixed
     {
         $arrayForm = array(
             "description" => $this->m_description,
@@ -46,7 +46,7 @@ class Definition implements \JsonSerializable
         {
             $arrayForm["required"] = $this->m_requiredPropertyNames;
         }
-        
+
         return $arrayForm;
     }
 
