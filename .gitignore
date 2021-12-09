@@ -1,3 +1,4 @@
 composer.lock
 swagger.json
 vendor
+/nbproject

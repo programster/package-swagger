@@ -1,6 +1,6 @@
 <?php
 
-/* 
+/*
  * A collection that can only take Paths
  */
 
@@ -14,7 +14,7 @@ final class DefinitionCollection extends \ArrayObject
     }
 
 
-    public function append($value) 
+    public function append(mixed $value) : void
     {
         if ($value instanceof Definition)
         {
@@ -27,7 +27,7 @@ final class DefinitionCollection extends \ArrayObject
     }
 
 
-    public function offsetSet($index, $newval) 
+    public function offsetSet(mixed $index, mixed $newval) : void
     {
         if ($newval instanceof Definition)
         {

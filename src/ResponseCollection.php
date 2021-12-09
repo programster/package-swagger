@@ -1,6 +1,6 @@
 <?php
 
-/* 
+/*
  * A collection that can only take Response objects
  */
 
@@ -14,7 +14,7 @@ final class ResponseCollection extends \ArrayObject
     }
 
 
-    public function append($value) 
+    public function append(mixed $value) : void
     {
         if ($value instanceof Response)
         {
@@ -27,7 +27,7 @@ final class ResponseCollection extends \ArrayObject
     }
 
 
-    public function offsetSet($index, $newval) 
+    public function offsetSet(mixed $index, mixed $newval) : void
     {
         if ($newval instanceof Response)
         {
