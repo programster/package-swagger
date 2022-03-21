@@ -4,10 +4,10 @@
  * A script to generate the swagger JSON documentation.
  */
 
+namespace Programster\Swagger\Testing;
 
-require_once(__DIR__ . '/vendor/autoload.php');
 
-
+require_once(__DIR__ . '/../vendor/autoload.php');
 
 
 // add a path/endpoint for users
