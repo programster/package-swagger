@@ -5,6 +5,23 @@
  */
 
 namespace Programster\Swagger\Testing;
+use Programster\Swagger\Definition;
+use Programster\Swagger\DefinitionCollection;
+use Programster\Swagger\DefinitionProperty;
+use Programster\Swagger\Document;
+use Programster\Swagger\Method;
+use Programster\Swagger\Parameter;
+use Programster\Swagger\ParameterBodyObject;
+use Programster\Swagger\ParameterCollection;
+use Programster\Swagger\Path;
+use Programster\Swagger\PathAction;
+use Programster\Swagger\PathCollection;
+use Programster\Swagger\ParameterLocation;
+use Programster\Swagger\Response;
+use Programster\Swagger\ResponseCollection;
+use Programster\Swagger\SecurityScheme;
+use Programster\Swagger\SecuritySchemeCollection;
+use Programster\Swagger\Type;
 
 
 require_once(__DIR__ . '/../vendor/autoload.php');
@@ -13,19 +30,18 @@ require_once(__DIR__ . '/../vendor/autoload.php');
 // add a path/endpoint for users
 
 
-
 $userReference = array();
 $userReference['$ref'] = "#definitions/user";
 
 $userProperties = array(
-    Programster\Swagger\DefinitionProperty::createBasic("id", \Programster\Swagger\Type::createInt(), "The ID of the user.", false),
-    Programster\Swagger\DefinitionProperty::createBasic("first_name", \Programster\Swagger\Type::createString(), "The first name of the user.", true),
-    Programster\Swagger\DefinitionProperty::createBasic("last_name", \Programster\Swagger\Type::createString(), "The last name of the user.", true),
+    DefinitionProperty::createBasic("id", Type::createInt(), "The ID of the user.", false),
+    DefinitionProperty::createBasic("first_name", Type::createString(), "The first name of the user.", true),
+    DefinitionProperty::createBasic("last_name", Type::createString(), "The last name of the user.", true),
 );
 
-$userDefinition = new Programster\Swagger\Definition("User", "A user object", ...$userProperties);
+$userDefinition = new Definition("User", "A user object", ...$userProperties);
 
-$createUserSuccessResponse = Programster\Swagger\Response::createObjectResponse(
+$createUserSuccessResponse = Response::createObjectResponse(
     200,
     "User successfully created.",
     $userDefinition
@@ -33,36 +49,36 @@ $createUserSuccessResponse = Programster\Swagger\Response::createObjectResponse(
 
 if (false)
 {
-    $firstNameParameter = new \Programster\Swagger\Parameter(
+    $firstNameParameter = new Parameter(
         "first_name",
         "The first name of the user",
         true,
-        \Programster\Swagger\Type::createString(),
-        Programster\Swagger\ParameterLocation::createFormData()
+        Type::createString(),
+        ParameterLocation::createFormData()
     );
 
-    $lastNameParameter = new \Programster\Swagger\Parameter(
+    $lastNameParameter = new Parameter(
         "last_name",
         "The last name of the user",
         true,
-        \Programster\Swagger\Type::createString(),
-        Programster\Swagger\ParameterLocation::createFormData()
+        Type::createString(),
+        ParameterLocation::createFormData()
     );
 
-    $createUserParameters = new Programster\Swagger\ParameterCollection($firstNameParameter, $lastNameParameter);
+    $createUserParameters = new ParameterCollection($firstNameParameter, $lastNameParameter);
 
     // create user with posted form fields...
-    $createUserAction = new Programster\Swagger\PathAction(
-        Programster\Swagger\Method::createPost(),
+    $createUserAction = new PathAction(
+        Method::createPost(),
         "Get users in the system",
         "Get users in the system",
         $createUserParameters,
-        new \Programster\Swagger\ResponseCollection($getUsersResponse)
+        new ResponseCollection($getUsersResponse)
     );
 }
 else
 {
-    $userObjectParameter = new Programster\Swagger\ParameterBodyObject(
+    $userObjectParameter = new ParameterBodyObject(
         "user",
         "object representing the user to create",
         true,
@@ -70,32 +86,33 @@ else
     );
 
     // create user using posted JSON body.
-    $createUserAction = new Programster\Swagger\PathAction(
-        Programster\Swagger\Method::createPost(),
+    $createUserAction = new PathAction(
+        Method::createPost(),
         "Add a user to the system",
         "Add a user to the system",
-        new Programster\Swagger\ParameterCollection($userObjectParameter),
-        new \Programster\Swagger\ResponseCollection($createUserSuccessResponse)
+        new ParameterCollection($userObjectParameter),
+        new ResponseCollection($createUserSuccessResponse)
     );
 }
 
 
-$usersPath = new \Programster\Swagger\Path("/users", $createUserAction);
-$paths = new Programster\Swagger\PathCollection($usersPath);
-$definitions = new Programster\Swagger\DefinitionCollection($userDefinition);
-$basicAuth = Programster\Swagger\SecurityScheme::createBasicAuth("basicAuth");
+$usersPath = new Path("/users", $createUserAction);
+$paths = new PathCollection($usersPath);
+$definitions = new DefinitionCollection($userDefinition);
+$basicAuth = SecurityScheme::createBasicAuth("basicAuth");
 
-$document = new \Programster\Swagger\Document(
+$document = new Document(
     "My RESTful API",
     "A service that does something useful.",
     "www.myAPiHOstname.com",
     "1.0.0",
     $paths,
     $definitions,
-    new \Programster\Swagger\SecuritySchemeCollection($basicAuth),
+    new SecuritySchemeCollection($basicAuth),
     array("basicAuth" => array())
 );
 
 
-file_put_contents(__DIR__ . '/swagger.json', $document);
-print "Swagger documentation updated. Don't forget to commit." . PHP_EOL;
+//file_put_contents(__DIR__ . '/swagger.json', $document);
+print $document . PHP_EOL;
+//print "Swagger documentation updated. Don't forget to commit." . PHP_EOL;

@@ -16,7 +16,6 @@ class Document
     private $m_version;
     private $m_paths;
     private $m_definitions;
-    private $m_swaggerVersion;
     private $m_document_version;
     private $m_security;
     private $m_securitySchemes;
@@ -57,7 +56,6 @@ class Document
         $this->m_document_version = $documentVersion;
         $this->m_schemes = $schemes;
         $this->m_basePath = $basePath;;
-        $this->m_swaggerVersion = "2.0";
         $this->m_definitions = array();
         $this->m_paths = array();
         $this->m_securitySchemes = $securitySchemes;
@@ -83,7 +81,7 @@ class Document
     public function __toString()
     {
         $document = new \stdClass();
-        $document->swagger = $this->m_swaggerVersion;
+        $document->openapi = "3.0.3"; // if one was using swagger spec, this would be $document->swagger = "2.0"
         
         $document->info = new \stdClass();
         $document->info->title = $this->m_title;
