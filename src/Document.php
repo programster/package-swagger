@@ -1,26 +1,26 @@
 <?php
 
-/* 
- * 
+/*
+ *
  */
 
 namespace Programster\Swagger;
 
 class Document
 {
-    private $m_title;
-    private $m_description;
-    private $m_host;
-    private $m_schemes;
-    private $m_basePath;
-    private $m_version;
-    private $m_paths;
-    private $m_definitions;
-    private $m_document_version;
-    private $m_security;
-    private $m_securitySchemes;
-    
-    
+    private readonly string $m_title;
+    private readonly string $m_description;
+    private readonly string $m_host;
+    private readonly array $m_schemes;
+    private readonly string$m_basePath;
+    private readonly string $m_version;
+    private readonly array $m_paths;
+    private readonly array $m_definitions;
+    private readonly string $m_documentVersion;
+    private readonly array $m_security;
+    private readonly SecuritySchemeCollection $m_securitySchemes;
+
+
     /**
      * Create your swagger document.
      * @param string $title - the Title of your API
@@ -38,42 +38,46 @@ class Document
      * @param string $basePath - the base path of your api. E.g. "/" or "/api" etc.
      */
     public function __construct(
-        string $title, 
-        string $description, 
-        string $host, 
-        string $documentVersion, 
+        string $title,
+        string $description,
+        string $host,
+        string $documentVersion,
         PathCollection $paths,
         DefinitionCollection $definitions,
         SecuritySchemeCollection $securitySchemes,
         array $security = array(),
-        array $schemes = array("https"), 
+        array $schemes = array("https"),
         string $basePath = "/"
     )
     {
         $this->m_title = $title;
         $this->m_description = $description;
         $this->m_host = $host;
-        $this->m_document_version = $documentVersion;
+        $this->m_documentVersion = $documentVersion;
         $this->m_schemes = $schemes;
         $this->m_basePath = $basePath;;
-        $this->m_definitions = array();
-        $this->m_paths = array();
         $this->m_securitySchemes = $securitySchemes;
         $this->m_security = $security;
-        
+
+        $mappedPaths = [];
         foreach ($paths as $path)
         {
             /* @var $path Path */
-            $this->m_paths[$path->getRoute()] = $path;
+            $mappedPaths[$path->getRoute()] = $path;
         }
-        
+
+        $this->m_paths = $mappedPaths;
+        $mappedDefinitions = [];
+
         foreach ($definitions as $definition)
         {
-            $this->m_definitions[$definition->getName()] = $definition;
+            $mappedDefinitions[$definition->getName()] = $definition;
         }
+
+        $this->m_definitions = $mappedDefinitions;
     }
-    
-    
+
+
     /**
      * Convert this document into a string form with is in JSON format.
      * @return string
@@ -82,32 +86,32 @@ class Document
     {
         $document = new \stdClass();
         $document->openapi = "3.0.3"; // if one was using swagger spec, this would be $document->swagger = "2.0"
-        
+
         $document->info = new \stdClass();
         $document->info->title = $this->m_title;
         $document->info->description = $this->m_description;
-        $document->info->version = $this->m_document_version;
-        
+        $document->info->version = $this->m_documentVersion;
+
         $document->host = $this->m_host;
         $document->schemes = $this->m_schemes;
         $document->basePath = $this->m_basePath;
         $document->consumes = array("multipart/form-data");
         $document->produces = array("application/json");
-        
+
         if (count($this->m_securitySchemes) > 0)
         {
             $schemesArray = array();
-            
+
             foreach ($this->m_securitySchemes as $scheme)
             {
                 /* @var $scheme SecurityScheme */
                 $schemesArray[$scheme->getSchemeName()] = $scheme->jsonSerialize();
             }
-            
+
             $document->securityDefinitions = $schemesArray;
             $document->security = array($this->m_security);
         }
-        
+
         # Paths is required, even if empty
         if (count($this->m_paths) > 0)
         {
@@ -117,12 +121,12 @@ class Document
         {
             $document->paths = new \stdClass();
         }
-        
+
         if (count($this->m_definitions) > 0)
         {
             $document->definitions = $this->m_definitions;
         }
-        
+
         return json_encode($document, JSON_UNESCAPED_SLASHES | JSON_PRETTY_PRINT);
     }
 }
