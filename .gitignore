@@ -1,4 +1,7 @@
 composer.lock
 swagger.json
 vendor
+
+# Ignore IDE directories
+.idea
 /nbproject
