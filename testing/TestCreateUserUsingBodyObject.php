@@ -47,53 +47,21 @@ $createUserSuccessResponse = Response::createObjectResponse(
     $userDefinition
 );
 
-if (false)
-{
-    $firstNameParameter = new Parameter(
-        "first_name",
-        "The first name of the user",
-        true,
-        Type::createString(),
-        ParameterLocation::createFormData()
-    );
+$userObjectParameter = new ParameterBodyObject(
+    "user",
+    "object representing the user to create",
+    true,
+    $userDefinition
+);
 
-    $lastNameParameter = new Parameter(
-        "last_name",
-        "The last name of the user",
-        true,
-        Type::createString(),
-        ParameterLocation::createFormData()
-    );
-
-    $createUserParameters = new ParameterCollection($firstNameParameter, $lastNameParameter);
-
-    // create user with posted form fields...
-    $createUserAction = new PathAction(
-        Method::createPost(),
-        "Get users in the system",
-        "Get users in the system",
-        $createUserParameters,
-        new ResponseCollection($getUsersResponse)
-    );
-}
-else
-{
-    $userObjectParameter = new ParameterBodyObject(
-        "user",
-        "object representing the user to create",
-        true,
-        $userDefinition
-    );
-
-    // create user using posted JSON body.
-    $createUserAction = new PathAction(
-        Method::createPost(),
-        "Add a user to the system",
-        "Add a user to the system",
-        new ParameterCollection($userObjectParameter),
-        new ResponseCollection($createUserSuccessResponse)
-    );
-}
+// create user using posted JSON body.
+$createUserAction = new PathAction(
+    Method::POST,
+    "Add a user to the system",
+    "Add a user to the system",
+    new ParameterCollection($userObjectParameter),
+    new ResponseCollection($createUserSuccessResponse)
+);
 
 
 $usersPath = new Path("/users", $createUserAction);

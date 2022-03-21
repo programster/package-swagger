@@ -4,15 +4,15 @@ The [specification for Swagger 2.0](https://github.com/OAI/OpenAPI-Specification
 
 ## Example Usage
 Below is a basic example for setting up an API that has an endpoint for creating users.
-It should be pretty self explanatory if you are using an IDE with auto-complete. 
-All that you need to know is that you need to create a \Programster\Swagger\Document object. 
+It should be pretty self explanatory if you are using an IDE with auto-complete.
+All that you need to know is that you need to create a \Programster\Swagger\Document object.
 Once you have managed to create it, you can just print it.
 
 
 ```php
 <?php
 
-/* 
+/*
  * A script to generate the swagger JSON documentation.
  */
 
@@ -40,18 +40,18 @@ $userDefinition = new Programster\Swagger\Definition("User", "A user object", ..
 $successResponse = new \Programster\Swagger\Response(200, "User successfully created.", $userDefinition);
 
 $firstNameParameter = new \Programster\Swagger\Parameter(
-    "first_name", 
-    "The first name of the user", 
-    true, 
-    \Programster\Swagger\Type::createString(), 
+    "first_name",
+    "The first name of the user",
+    true,
+    \Programster\Swagger\Type::createString(),
     Programster\Swagger\ParameterLocation::createFormData()
 );
 
 $lastNameParameter = new \Programster\Swagger\Parameter(
-    "last_name", 
-    "The last name of the user", 
-    true, 
-    \Programster\Swagger\Type::createString(), 
+    "last_name",
+    "The last name of the user",
+    true,
+    \Programster\Swagger\Type::createString(),
     Programster\Swagger\ParameterLocation::createFormData()
 );
 
@@ -59,8 +59,8 @@ $createUserParameters = new Programster\Swagger\ParameterCollection($firstNamePa
 
 // add a "POST" action to the users path for creating a user
 $createUserAction = new Programster\Swagger\PathAction(
-    Programster\Swagger\Method::createPost(), 
-    "Add a user to the system", 
+    \Programster\Swagger\Method::POST,
+    "Add a user to the system",
     "Add a user to the system",
     $createUserParameters,
     new \Programster\Swagger\ResponseCollection($successResponse)
@@ -73,11 +73,11 @@ $paths = new Programster\Swagger\PathCollection($usersPath);
 $definitions = new Programster\Swagger\DefinitionCollection($userDefinition);
 
 $document = new \Programster\Swagger\Document(
-    "My RESTful API", 
+    "My RESTful API",
     "A service that does something useful.",
-    "www.myAPiHOstname.com", 
-    "1.0.0", 
-    $paths, 
+    "www.myAPiHOstname.com",
+    "1.0.0",
+    $paths,
     $definitions
 );
 
@@ -86,6 +86,6 @@ file_put_contents(__DIR__ . '/swagger.json', $document);
 print "Swagger documentation updated. Don't forget to commit." . PHP_EOL;
 ```
 
-If you were to run that script, you would generate a `swagger.json` output file which you can link to from 
-[a swagger-UI page](https://petstore.swagger.io/) (as long as you enable CORS), or you can paste it directly into an 
+If you were to run that script, you would generate a `swagger.json` output file which you can link to from
+[a swagger-UI page](https://petstore.swagger.io/) (as long as you enable CORS), or you can paste it directly into an
 online [swagger editor](https://editor.swagger.io/).
