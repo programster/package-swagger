@@ -8,4 +8,5 @@ enum Type: string
     case STRING = "string";
     case BOOL = "boolean";
     case NUMBER = "number";
+    case OBJECT = "object";
 }

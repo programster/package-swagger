@@ -32,7 +32,7 @@ class Parameter implements \JsonSerializable
             'description' => $this->m_description,
             'required' => $this->m_required,
             'type' => $this->m_type,
-            'in' => (string) $this->m_in
+            'in' => $this->m_in
         );
     }
 

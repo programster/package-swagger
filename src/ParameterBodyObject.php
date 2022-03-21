@@ -13,7 +13,7 @@ class ParameterBodyObject extends Parameter
 
     public function __construct(string $name, string $description, bool $required, Definition $objectDefinition)
     {
-        parent::__construct($name, $description, $required, "object", ParameterLocation::createBody());
+        parent::__construct($name, $description, $required, Type::OBJECT, ParameterLocation::BODY);
         $this->m_definition = $objectDefinition;
     }
 
@@ -21,7 +21,7 @@ class ParameterBodyObject extends Parameter
     public function toArray()
     {
         return array(
-            'in' => (string) $this->m_in,
+            'in' => $this->m_in,
             'name' => $this->m_name,
             'description' => $this->m_description,
             'schema' => array(

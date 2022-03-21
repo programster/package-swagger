@@ -30,10 +30,10 @@ $userReference = array();
 $userReference['$ref'] = "#definitions/user";
 
 $userProperties = array(
-    Programster\Swagger\DefinitionProperty::createBasic("id", \Programster\Swagger\Type::createInt(), "The ID of the user."),
-    Programster\Swagger\DefinitionProperty::createBasic("first_name", \Programster\Swagger\Type::createString(), "The first name of the user."),
-    Programster\Swagger\DefinitionProperty::createBasic("last_name", \Programster\Swagger\Type::createString(), "The last name of the user."),
-    Programster\Swagger\DefinitionProperty::createArray("friends", \Programster\Swagger\Type::createInt(), "The list of user IDs that are friends with this user."),
+    Programster\Swagger\DefinitionProperty::createBasic("id", \Programster\Swagger\Type::INT, "The ID of the user."),
+    Programster\Swagger\DefinitionProperty::createBasic("first_name", \Programster\Swagger\Type::STRING, "The first name of the user."),
+    Programster\Swagger\DefinitionProperty::createBasic("last_name", \Programster\Swagger\Type::STRING, "The last name of the user."),
+    Programster\Swagger\DefinitionProperty::createArray("friends", \Programster\Swagger\Type::INT, "The list of user IDs that are friends with this user."),
 );
 
 $userDefinition = new Programster\Swagger\Definition("User", "A user object", ...$userProperties);

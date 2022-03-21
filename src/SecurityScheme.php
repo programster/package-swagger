@@ -9,15 +9,15 @@ namespace Programster\Swagger;
 
 final class SecurityScheme implements \JsonSerializable
 {
-    private $m_schemeName = "";
-    private $m_type;
-    private $m_description;
-    private $m_name;
-    private $m_in;
-    private $m_flow;
-    private $m_authorizationUrl;
-    private $m_tokenUrl;
-    private $m_scopes;
+    private readonly string $m_schemeName;
+    private readonly string $m_type;
+    private readonly ?string $m_description;
+    private readonly ?string $m_name;
+    private readonly ?ParameterLocation $m_in;
+    private readonly ?string $m_flow;
+    private readonly ?string $m_authorizationUrl;
+    private readonly ?string $m_tokenUrl;
+    private readonly ?array $m_scopes;
 
 
     private function __construct(){}
@@ -33,6 +33,12 @@ final class SecurityScheme implements \JsonSerializable
         $security = new SecurityScheme();
         $security->m_schemeName = $schemeName;
         $security->m_type = "basic";
+        $security->m_description = null;
+        $security->m_authorizationUrl = null;
+        $security->m_in = null;
+        $security->m_flow = null;
+        $security->m_name = null;
+        $security->m_scopes = null;
         return $security;
     }
 
@@ -47,7 +53,11 @@ final class SecurityScheme implements \JsonSerializable
         $security = new SecurityScheme();
         $security->m_schemeName = $schemeName;
         $security->m_type = "apiKey";
-        $security->m_in = "header";
+        $security->m_in = ParameterLocation::HEADER;
+        $security->m_authorizationUrl = null;
+        $security->m_flow = null;
+        $security->m_name = null;
+        $security->m_scopes = null;
         return $security;
     }
 
@@ -66,9 +76,9 @@ final class SecurityScheme implements \JsonSerializable
         $security->m_type = "oauth2";
         $security->m_authorizationUrl = $authorizationUrl;
         $security->m_flow = "implicit";
-        $security->m_in = "header";
+        $security->m_in = ParameterLocation::HEADER;
         $security->m_scopes = $scopes;
-
+        $security->m_name = null;
         return $security;
     }
 
@@ -85,12 +95,12 @@ final class SecurityScheme implements \JsonSerializable
             $arrayForm['description'] = $this->m_description;
         }
 
-        if ($this->m_description !== null)
+        if ($this->m_in !== null)
         {
             $arrayForm['in'] = $this->m_in;
         }
 
-        if ($this->m_description !== null)
+        if ($this->m_flow !== null)
         {
             $arrayForm['flow'] = $this->m_flow;
         }

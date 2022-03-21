@@ -26,7 +26,7 @@ class Path implements \JsonSerializable
         foreach ($this->m_actions as $action)
         {
             /* @var $action PathAction */
-            $methodString = (string)$action->getMethod();
+            $methodString = $action->getMethod()->value;
 
             /* @var $action PathAction*/
             $arrayForm[$methodString] = $action;

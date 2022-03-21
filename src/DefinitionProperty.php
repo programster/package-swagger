@@ -8,11 +8,11 @@ namespace Programster\Swagger;
 
 final class DefinitionProperty implements DefinitionPropertyInterface
 {
-    private $m_name;
-    private $m_type;
-    private $m_description;
+    private readonly string $m_name;
+    private readonly Type $m_type;
+    private readonly string $m_description;
     private $m_arrayItemType =  null; // only applies for arrays
-    private bool $m_required;
+    private readonly bool $m_required;
 
 
     private function __construct()
@@ -24,11 +24,16 @@ final class DefinitionProperty implements DefinitionPropertyInterface
     /**
      * Create a basic property (e.g. an integer, string, number, etc).
      * @param string $name - the name of the property.
-     * @param \Programster\Swagger\Type $type - the type of the attribute e.g. number/string/int etc
+     * @param Type $type - the type of the attribute e.g. number/string/int etc
      * @param string $description - the description of the property
-     * @return \Programster\Swagger\DefinitionProperty
+     * @return DefinitionProperty
      */
-    public static function createBasic(string $name, Type $type, string $description, bool $required) : DefinitionProperty
+    public static function createBasic(
+        string $name,
+        Type $type,
+        string $description,
+        bool $required
+    ) : DefinitionProperty
     {
         $definitionProperty = new DefinitionProperty();
         $definitionProperty->m_name = $name;
@@ -42,11 +47,16 @@ final class DefinitionProperty implements DefinitionPropertyInterface
     /**
      * Create a property that is an array of integers/strings/etc
      * @param string $name - the name of the property.
-     * @param \Programster\Swagger\Type $itemType - the type for the items in the array, e.g. number/string/int etc
+     * @param Type $itemType - the type for the items in the array, e.g. number/string/int etc
      * @param string $description - the description of the property
-     * @return \Programster\Swagger\DefinitionProperty - the created property
+     * @return DefinitionProperty - the created property
      */
-    public static function createArray(string $name, Type $itemType, string $description, bool $required) : DefinitionProperty
+    public static function createArray(
+        string $name,
+        Type $itemType,
+        string $description,
+        bool $required
+    ) : DefinitionProperty
     {
         $definitionProperty = new DefinitionProperty();
         $definitionProperty->m_name = $name;
@@ -80,6 +90,7 @@ final class DefinitionProperty implements DefinitionPropertyInterface
     {
         return $this->m_required;
     }
+
 
     # Accessors
     public function getName() : string { return $this->m_name; }

@@ -34,9 +34,9 @@ $userReference = array();
 $userReference['$ref'] = "#definitions/user";
 
 $userProperties = array(
-    DefinitionProperty::createBasic("id", Type::createInt(), "The ID of the user.", false),
-    DefinitionProperty::createBasic("first_name", Type::createString(), "The first name of the user.", true),
-    DefinitionProperty::createBasic("last_name", Type::createString(), "The last name of the user.", true),
+    DefinitionProperty::createBasic("id", Type::INT, "The ID of the user.", false),
+    DefinitionProperty::createBasic("first_name", Type::STRING, "The first name of the user.", true),
+    DefinitionProperty::createBasic("last_name", Type::STRING, "The last name of the user.", true),
 );
 
 $userDefinition = new Definition("User", "A user object", ...$userProperties);
