@@ -12,7 +12,6 @@ use JetBrains\PhpStorm\Internal\TentativeType;
 class SchemaNumber implements \JsonSerializable
 {
     public function __construct(
-        private readonly ?string $description = null,
         private readonly ?bool $required = null,
         private readonly float|int|null $minimum = null,
         private readonly float|int|null $maximum = null,
@@ -28,9 +27,8 @@ class SchemaNumber implements \JsonSerializable
 
     public function jsonSerialize(): mixed
     {
-        $arrayForm = ['type' => TYPE::NUMBER];
+        $arrayForm = ['type' => Type::NUMBER];
 
-        if ($this->description !== null) { $arrayForm = ['description' => $this->description]; }
         if ($this->required !== null) { $arrayForm = ['required' => $this->required]; }
         if ($this->minimum !== null) { $arrayForm = ['minimum' => $this->minimum]; }
         if ($this->maximum !== null) { $arrayForm = ['maximum' => $this->maximum]; }

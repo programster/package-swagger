@@ -31,7 +31,7 @@ class SchemaObject implements \JsonSerializable
 
     public function jsonSerialize(): mixed
     {
-        $arrayForm = ['type' => TYPE::ARRAY];
+        $arrayForm = ['type' => Type::ARRAY];
 
         if ($this->description !== null) { $arrayForm = ['description' => $this->description]; }
         if ($this->properties !== null) { $arrayForm = ['properties' => $this->properties]; }

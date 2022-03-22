@@ -28,7 +28,7 @@ class SchemaInt implements \JsonSerializable
 
     public function jsonSerialize(): mixed
     {
-        $arrayForm = ['type' => TYPE::INT];
+        $arrayForm = ['type' => Type::INT];
 
         if ($this->required !== null) { $arrayForm = ['required' => $this->required]; }
         if ($this->description !== null) { $arrayForm = ['description' => $this->description]; }

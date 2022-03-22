@@ -7,19 +7,14 @@
 namespace Programster\Swagger;
 
 
-use JetBrains\PhpStorm\Internal\TentativeType;
-
 class SchemaString implements \JsonSerializable
 {
     public function __construct(
-        private readonly ?bool $required = null,
         private readonly ?string $default = null,
-        private readonly ?string $description = null,
-        private readonly int|null $minimum = null,
-        private readonly int|null $maximum = null,
-        private readonly int|null $multipleOf = null,
-        private readonly int|null $exclusiveMaximum = null,
-        private readonly int|null $exclusiveMinimum = null
+        private readonly int|null $minLength = null,
+        private readonly int|null $maxLength = null,
+        private readonly ?string $pattern = null,
+        private readonly ?Format $format = null,
     )
     {
 
@@ -28,16 +23,13 @@ class SchemaString implements \JsonSerializable
 
     public function jsonSerialize(): mixed
     {
-        $arrayForm = ['type' => TYPE::INT];
+        $arrayForm = ['type' => Type::STRING];
 
-        if ($this->required !== null) { $arrayForm = ['required' => $this->required]; }
-        if ($this->description !== null) { $arrayForm = ['description' => $this->description]; }
         if ($this->default !== null) { $arrayForm = ['default' => $this->default]; }
-        if ($this->minimum !== null) { $arrayForm = ['minimum' => $this->minimum]; }
-        if ($this->maximum !== null) { $arrayForm = ['maximum' => $this->maximum]; }
-        if ($this->multipleOf !== null) { $arrayForm = ['multipleOf' => $this->multipleOf]; }
-        if ($this->exclusiveMinimum !== null) { $arrayForm = ['exclusiveMinimum' => $this->exclusiveMinimum]; }
-        if ($this->exclusiveMaximum !== null) { $arrayForm = ['exclusiveMaximum' => $this->exclusiveMaximum]; }
+        if ($this->minLength !== null) { $arrayForm = ['minLength' => $this->minLength]; }
+        if ($this->maxLength !== null) { $arrayForm = ['maxLength' => $this->maxLength]; }
+        if ($this->pattern !== null) { $arrayForm = ['pattern' => $this->pattern]; }
+        if ($this->format !== null) { $arrayForm = ['format' => $this->format]; }
 
         return $arrayForm;
     }

@@ -2,7 +2,6 @@
 
 namespace Programster\Swagger;
 
-use JetBrains\PhpStorm\Internal\TentativeType;
 
 class Reference implements \JsonSerializable
 {

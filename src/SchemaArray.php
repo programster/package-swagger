@@ -36,11 +36,11 @@ class SchemaArray
      * contains constraint. These keywords can be any non-negative number including zero.
      */
     public function __construct(
-        private readonly ?string $description,
-        private readonly ?bool $required,
-        private readonly ?int $minItems,
-        private readonly ?int $maxItems,
-        private readonly ?Type $items,
+        private readonly ?string $description = null,
+        private readonly ?bool $required = null,
+        private readonly ?int $minItems = null,
+        private readonly ?int $maxItems = null,
+        private readonly ?Type $items = null,
         private readonly ?bool $uniqueItems = null,
         private readonly ?Type $contains = null,
         private readonly ?int $minContains = null,
@@ -61,7 +61,7 @@ class SchemaArray
 
     public function jsonSerialize(): mixed
     {
-        $arrayForm = ['type' => TYPE::ARRAY];
+        $arrayForm = ['type' => Type::ARRAY];
 
         if ($this->description !== null) { $arrayForm = ['description' => $this->description]; }
         if ($this->required !== null) { $arrayForm = ['required' => $this->required]; }

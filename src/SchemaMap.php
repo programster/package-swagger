@@ -9,15 +9,29 @@ class SchemaMap implements \JsonSerializable
     private array $m_map;
 
 
-    public function __construct(string $key, Schema | Reference $headerOrReference)
+    /**
+     * @param array|null $map
+     * @throws \Exception - if any of the keys in the map are duplicated, which should be impossible.
+     */
+    public function __construct(array $map = null)
     {
-        $this->m_map = [
-            $key => $headerOrReference
-        ];
+        if ($map === null)
+        {
+            $this->m_map = [];
+        }
+        else
+        {
+            $this->m_map = [];
+
+            foreach ($map as $name => $schemaOrReference)
+            {
+                $this->add($name, $schemaOrReference);
+            }
+        }
     }
 
 
-    public function add(string $key, Schema | Reference $headerOrReference)
+    public function add(string $key, SchemaObject | SchemaString | SchemaInt | SchemaArray | SchemaNumber | Reference $headerOrReference)
     {
         if (isset($this->m_map[$key]))
         {

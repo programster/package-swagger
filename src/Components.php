@@ -2,13 +2,13 @@
 
 namespace Programster\Swagger;
 
-use JetBrains\PhpStorm\Internal\TentativeType;
+use Programster\Swagger\Examples\ExampleMap;
 
 class Components implements \JsonSerializable
 {
     public function __construct(
         private readonly ?SchemaMap $schemas = null,
-        private readonly ?ResponseMap $responses = null,
+        private readonly ?ResponseCollection $responses = null,
         private readonly ?ParameterMap $parameters = null,
         private readonly ?ExampleMap $examples = null,
         private readonly ?RequestBodyMap $requestBodies = null,

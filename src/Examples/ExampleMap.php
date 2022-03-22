@@ -1,20 +1,23 @@
 <?php
 
-namespace Programster\Swagger;
+namespace Programster\Swagger\Examples;
 
+
+use Programster\Swagger\Header;
+use Programster\Swagger\Reference;
 
 class ExampleMap implements \JsonSerializable
 {
     private array $m_map;
 
 
-    public function __construct(string $name, Example $example)
+    public function __construct(string $name, ExternalValueExample | ValueExample $example)
     {
         $this->m_map = array($name => $example);
     }
 
 
-    public function add(string $name, Example $example)
+    public function add(string $name, ExternalValueExample | ValueExample $example)
     {
         if (isset($this->m_map[$name]))
         {
@@ -31,7 +34,7 @@ class ExampleMap implements \JsonSerializable
      * @param Header|Reference $mediaType
      * @return void
      */
-    public function addOrReplace(string $name, Example $example)
+    public function addOrReplace(string $name, ExternalValueExample | ValueExample $example)
     {
         $this->m_map[$name] = $example;
     }

@@ -5,92 +5,117 @@
  */
 
 namespace Programster\Swagger\Testing;
+
+use Programster\Swagger\Contact;
 use Programster\Swagger\ContentMap;
-use Programster\Swagger\Definition;
-use Programster\Swagger\SchemaCollection;
-use Programster\Swagger\SchemaProperty;
+use Programster\Swagger\Examples\ValueExample;
+use Programster\Swagger\Format;
+use Programster\Swagger\Info;
+use Programster\Swagger\License;
+use Programster\Swagger\MappedResponse;
+use Programster\Swagger\RequestBody;
+use Programster\Swagger\ResponseCode;
+use Programster\Swagger\ResponseCollection;
+use Programster\Swagger\SchemaMap;
+use Programster\Swagger\SchemaObject;
 use Programster\Swagger\OpenApi;
 use Programster\Swagger\MediaType;
 use Programster\Swagger\Method;
 use Programster\Swagger\MimeType;
-use Programster\Swagger\Parameter;
-use Programster\Swagger\ParameterBodyObject;
-use Programster\Swagger\ParameterCollection;
 use Programster\Swagger\Path;
-use Programster\Swagger\PathAction;
+use Programster\Swagger\Operation;
 use Programster\Swagger\PathCollection;
-use Programster\Swagger\ParameterLocation;
 use Programster\Swagger\Response;
-use Programster\Swagger\ResponseCollection;
+use Programster\Swagger\SchemaString;
 use Programster\Swagger\SecurityRequirement;
-use Programster\Swagger\SecurityRequirementCollection;
-use Programster\Swagger\Type;
+use Programster\Swagger\SecuritySchemes\HttpBasicAuth;
 
 
 require_once(__DIR__ . '/../vendor/autoload.php');
 
 
-// add a path/endpoint for users
+function main()
+{
+    // add a path/endpoint for users
+
+    $successResponseSchema = new SchemaObject(
+        description: "A success response object",
+        properties: new SchemaMap([
+            "message" => new SchemaString()
+        ])
+    );
+
+    $exampleSuccessResponse = new ValueExample(json_encode(['message' => "Successfully did x."]));
+
+    $genericSuccessResponse = new Response(
+        description: "A generic success response.",
+        contentMap: new ContentMap(
+            key: MimeType::JSON,
+            mediaType: new MediaType(
+                schema: $successResponseSchema,
+                example: $exampleSuccessResponse
+            )
+        )
+    );
+
+    $userProperties = new SchemaMap([
+        'id' => new SchemaString(format: Format::UUID),
+        'first_name' => new SchemaString(minLength: 3, maxLength: 255),
+        'last_name' => new SchemaString(minLength: 3, maxLength: 255),
+    ]);
+
+    $userObject = new SchemaObject(
+        description: "A user",
+        properties: $userProperties,
+        requiredProperties: ['first_name', 'last_name'],
+    );
+
+    $userMediaType = new MediaType(schema: $userObject);
+
+    $userRequestBody = new RequestBody(
+        description: "Object representing the user to create.",
+        content: new ContentMap(MimeType::JSON, $userMediaType),
+        required: true,
+    );
+
+    // Possible responses for sending a requst to create a user.
+    $createUserResponses = new ResponseCollection(
+        new MappedResponse(code: ResponseCode::OK, response: $genericSuccessResponse)
+    );
+
+    // create user using posted JSON body.
+    $createUserOperation = new Operation(
+        method: Method::POST,
+        responses: $createUserResponses,
+        summary: "Add a user to the system",
+        description:"Add a user to the system",
+        requestBody: $userRequestBody
+    );
+
+    $basicAuth = new HttpBasicAuth();
+
+    $info = new Info(
+        title: "My RESTful API",
+        version: "1.0",
+        description: "A RESTful API to integrate with something.",
+        contact: new Contact("Programster", null, "myEmail@gmail.com"),
+        license: new License("MIT", "https://opensource.org/licenses/MIT")
+    );
+
+    $usersPath = new Path(relativePath: "/users", operations: $createUserOperation);
+    $paths = new PathCollection($usersPath);
+
+    $document = new OpenApi(
+        info: $info,
+        servers: null,
+        paths: $paths
+    );
+
+    //file_put_contents(__DIR__ . '/swagger.json', $document);
+    print $document . PHP_EOL;
+    //print "Swagger documentation updated. Don't forget to commit." . PHP_EOL;
+}
 
 
-$userReference = array();
-$userReference['$ref'] = "#definitions/user";
+main();
 
-$userProperties = array(
-    SchemaProperty::createBasic("id", Type::INT, "The ID of the user.", false),
-    SchemaProperty::createBasic("first_name", Type::STRING, "The first name of the user.", true),
-    SchemaProperty::createBasic("last_name", Type::STRING, "The last name of the user.", true),
-);
-
-$userDefinition = new Definition("User", "A user object", ...$userProperties);
-
-$response = new Resp = Response::createObjectResponse(
-    200,
-    "User successfully created.",
-    $userDefinition
-);
-
-$userObjectParameter = new ParameterBodyObject(
-    "user",
-    "Object representing the user to create.",
-    true,
-    $userDefinition
-);
-
-$contentMap = new ContentMap();
-
-$createUserSuccessResponse = new Response(
-    "User added response.",
-    new ContentMap(MimeType::JSON, new MediaType($userDefinition))
-);
-
-// create user using posted JSON body.
-$createUserAction = new PathAction(
-    Method::POST,
-    "Add a user to the system",
-    "Add a user to the system",
-    new ParameterCollection($userObjectParameter),
-    new Responses(ResponseCode::OK, $createUserSuccessResponse)
-);
-
-
-$usersPath = new Path("/users", $createUserAction);
-$paths = new PathCollection($usersPath);
-$definitions = new SchemaCollection($userDefinition);
-$basicAuth = SecurityRequirement::createBasicAuth("basicAuth");
-
-$document = new OpenApi(
-    "My RESTful API",
-    "A service that does something useful.",
-    "www.myAPiHOstname.com",
-    "1.0.0",
-    $paths,
-    $definitions,
-    new SecurityRequirementCollection($basicAuth),
-    array("basicAuth" => array())
-);
-
-
-//file_put_contents(__DIR__ . '/swagger.json', $document);
-print $document . PHP_EOL;
-//print "Swagger documentation updated. Don't forget to commit." . PHP_EOL;

@@ -21,7 +21,7 @@ class License implements \JsonSerializable
 
         if ($this->url !== null)
         {
-            $arrayForm = ['url' => $this->url];
+            $arrayForm['url'] = $this->url;
         }
 
         return $arrayForm;

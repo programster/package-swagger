@@ -8,7 +8,7 @@ namespace Programster\Swagger;
 
 class Response implements \JsonSerializable
 {
-    private function __construct(
+    public function __construct(
         private readonly string $description,
         private readonly ContentMap $contentMap,
         private readonly ?HeaderMap $headerMap = null,
@@ -22,7 +22,7 @@ class Response implements \JsonSerializable
     public function toArray() : array
     {
         $arrayForm = array(
-            'description' => $this->m_description,
+            'description' => $this->description,
             'content' => $this->contentMap
         );
 

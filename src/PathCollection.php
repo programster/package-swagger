@@ -1,41 +1,42 @@
 <?php
 
-/*
- * A collection that can only take Paths
- */
+
 
 namespace Programster\Swagger;
 
-final class PathCollection extends \ArrayObject
+
+final class PathCollection implements \JsonSerializable
 {
+    private readonly array $arrayForm;
+
+
+    /**
+     * @param Path ...$paths
+     * @throws \Exception - if two of the paths provided have the same relative path.
+     */
     public function __construct(Path ...$paths)
     {
-        parent::__construct($paths);
+        $arrayForm = [];
+
+        foreach ($paths as $path)
+        {
+            if (isset($arrayForm[$path->getRelativePath()]))
+            {
+                $msg = "You cannot have two paths with the same relative path: {$path->getRelativePath()}";
+                throw new \Exception($msg);
+            }
+
+            /* @var $path \Programster\Swagger\Path */
+            $arrayForm[$path->getRelativePath()] = $path->toArray();
+        }
+
+        $this->arrayForm = $arrayForm;
     }
 
 
-    public function append(mixed $value) : void
-    {
-        if ($value instanceof Path)
-        {
-            parent::append($value);
-        }
-        else
-        {
-            throw new \Exception("Cannot append non Path to a " . __CLASS__);
-        }
-    }
 
-
-    public function offsetSet(mixed $index, mixed $newval) : void
+    public function jsonSerialize(): mixed
     {
-        if ($newval instanceof Path)
-        {
-            parent::offsetSet($index, $newval);
-        }
-        else
-        {
-            throw new \Exception("Cannot add a non Path value to a " . __CLASS__);
-        }
+        return $this->arrayForm;
     }
 }

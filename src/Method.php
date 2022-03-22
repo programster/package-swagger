@@ -6,8 +6,11 @@ namespace Programster\Swagger;
 enum Method: string
 {
     case GET = "get";
-    case POST = "post";
     case PUT = "put";
-    case PATCH = "patch";
+    case POST = "post";
     case DELETE = "delete";
+    case OPTIONS = "options";
+    case HEAD = "head";
+    case PATCH = "patch";
+    case TRACE = "trace";
 }

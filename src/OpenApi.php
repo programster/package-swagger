@@ -10,13 +10,12 @@ use JetBrains\PhpStorm\Internal\TentativeType;
 
 class OpenApi implements \JsonSerializable
 {
-
     public function __construct(
         private readonly Info $info,
-        private readonly ServerCollection $servers,
-        private readonly Paths $paths,
-        private readonly Components $components,
-        private readonly SecurityRequirementCollection $security,
+        private readonly PathCollection $paths,
+        private readonly ?ServerCollection $servers = null,
+        private readonly ?Components $components = null,
+        private readonly ?SecurityRequirementCollection $security = null,
         private readonly ?TagCollection $tags = null,
         private readonly ?ExternalDocumentation $externalDocs = null
     )
@@ -31,13 +30,22 @@ class OpenApi implements \JsonSerializable
      */
     public function __toString()
     {
-        return json_encode($this);
+        return json_encode($this, JSON_PRETTY_PRINT, JSON_UNESCAPED_SLASHES);
     }
 
 
     public function jsonSerialize(): mixed
     {
-        $arrayForm = [];
+        $arrayForm = [
+            'info' => $this->info,
+            'paths' => $this->paths
+        ];
+
+        if ($this->servers !== null)  { $arrayForm['servers'] = $this->servers; }
+        if ($this->components !== null)  { $arrayForm['components'] = $this->components; }
+        if ($this->security !== null)  { $arrayForm['security'] = $this->security; }
+        if ($this->tags !== null)  { $arrayForm['tags'] = $this->tags; }
+        if ($this->externalDocs !== null)  { $arrayForm['externalDocs'] = $this->externalDocs; }
 
         return $arrayForm;
     }

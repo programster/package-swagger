@@ -6,20 +6,31 @@
 
 namespace Programster\Swagger;
 
-use JetBrains\PhpStorm\Internal\TentativeType;
+use JetBrains\PhpStorm\ArrayShape;
+use Programster\Swagger\Examples\ExampleMap;
+use Programster\Swagger\Examples\ExternalValueExample;
+use Programster\Swagger\Examples\ValueExample;
+
 
 class MediaType implements \JsonSerializable
 {
+    /**
+     * https://swagger.io/specification/#media-type-object
+     * @param SchemaString|SchemaNumber|SchemaArray|SchemaInt|SchemaObject|Reference $schema
+     * @param ExampleMap|ValueExample|ExternalValueExample |null $example
+     * @param EncodingObject|null $encoding
+     */
     public function __construct(
-        private readonly Schema | Reference $schema,
-        private readonly Examples | Example | null $example,
-        private readonly ?EncodingObject $encoding
+        private readonly SchemaString | SchemaNumber | SchemaArray | SchemaInt | SchemaObject | Reference $schema,
+        private readonly ExampleMap | ValueExample | ExternalValueExample | null $example = null,
+        private readonly ?EncodingObject $encoding = null
     )
     {
 
     }
 
-    public function toArray() : array
+
+    #[ArrayShape(['schema' => "mixed", 'encoding' => "mixed", 'examples' => "mixed", 'example' => "mixed"])] public function toArray() : array
     {
         $arrayForm = [
             'schema' => $this->schema,
@@ -27,13 +38,13 @@ class MediaType implements \JsonSerializable
 
         if ($this->example !== null)
         {
-            if (get_class($this->example) === Example::class)
+            if (get_class($this->example) === ExampleMap::class)
             {
-                $arrayForm['example'] = $this->example;
+                $arrayForm['examples'] = $this->example;
             }
             else
             {
-                $arrayForm['examples'] = $this->example;
+                $arrayForm['example'] = $this->example;
             }
         }
 
@@ -46,7 +57,8 @@ class MediaType implements \JsonSerializable
     }
 
 
-    public function jsonSerialize(): mixed
+    #[ArrayShape(['schema' => "mixed", 'encoding' => "mixed", 'examples' => "mixed", 'example' => "mixed"])]
+    public function jsonSerialize(): array
     {
         return $this->toArray();
     }
