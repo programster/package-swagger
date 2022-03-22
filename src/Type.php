@@ -4,9 +4,11 @@ namespace Programster\Swagger;
 
 enum Type: string
 {
-    case INT = "integer";
     case STRING = "string";
-    case BOOL = "boolean";
+    case INT = "integer";
     case NUMBER = "number";
+    case BOOL = "boolean";
+    case ARRAY = "array";
     case OBJECT = "object";
+    case NULL = "null";
 }

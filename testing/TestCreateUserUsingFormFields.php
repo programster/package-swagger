@@ -6,9 +6,9 @@
 
 namespace Programster\Swagger\Testing;
 use Programster\Swagger\Definition;
-use Programster\Swagger\DefinitionCollection;
-use Programster\Swagger\DefinitionProperty;
-use Programster\Swagger\Document;
+use Programster\Swagger\SchemaCollection;
+use Programster\Swagger\SchemaProperty;
+use Programster\Swagger\OpenApi;
 use Programster\Swagger\Method;
 use Programster\Swagger\Parameter;
 use Programster\Swagger\ParameterBodyObject;
@@ -19,8 +19,8 @@ use Programster\Swagger\PathCollection;
 use Programster\Swagger\ParameterLocation;
 use Programster\Swagger\Response;
 use Programster\Swagger\ResponseCollection;
-use Programster\Swagger\SecurityScheme;
-use Programster\Swagger\SecuritySchemeCollection;
+use Programster\Swagger\SecurityRequirement;
+use Programster\Swagger\SecurityRequirementCollection;
 use Programster\Swagger\Type;
 
 
@@ -34,9 +34,9 @@ $userReference = array();
 $userReference['$ref'] = "#definitions/user";
 
 $userProperties = array(
-    DefinitionProperty::createBasic("id", Type::INT, "The ID of the user.", false),
-    DefinitionProperty::createBasic("first_name", Type::INT, "The first name of the user.", true),
-    DefinitionProperty::createBasic("last_name", Type::INT, "The last name of the user.", true),
+    SchemaProperty::createBasic("id", Type::INT, "The ID of the user.", false),
+    SchemaProperty::createBasic("first_name", Type::INT, "The first name of the user.", true),
+    SchemaProperty::createBasic("last_name", Type::INT, "The last name of the user.", true),
 );
 
 $userDefinition = new Definition("User", "A user object", ...$userProperties);
@@ -79,17 +79,17 @@ $createUserAction = new PathAction(
 
 $usersPath = new Path("/users", $createUserAction);
 $paths = new PathCollection($usersPath);
-$definitions = new DefinitionCollection($userDefinition);
-$basicAuth = SecurityScheme::createBasicAuth("basicAuth");
+$definitions = new SchemaCollection($userDefinition);
+$basicAuth = SecurityRequirement::createBasicAuth("basicAuth");
 
-$document = new Document(
+$document = new OpenApi(
     "My RESTful API",
     "A service that does something useful.",
     "www.myAPiHOstname.com",
     "1.0.0",
     $paths,
     $definitions,
-    new SecuritySchemeCollection($basicAuth),
+    new SecurityRequirementCollection($basicAuth),
     array("basicAuth" => array())
 );
 

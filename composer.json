@@ -16,7 +16,9 @@
     },
     "autoload": {
         "psr-4": {
-            "Programster\\Swagger\\": "src/"
+            "Programster\\Swagger\\": "src/",
+            "Programster\\Swagger\\SecuritySchemes\\": "src/SecuritySchemes",
+            "Programster\\Swagger\\OAuth\\": "src/OAuth"
         }
     },
     "autoload-dev": {

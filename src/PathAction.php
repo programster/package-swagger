@@ -17,12 +17,12 @@ class PathAction implements \JsonSerializable
 
 
     public function __construct(
-        Method $method,
-        string $summary,
-        string $description,
+        Method              $method,
+        string              $summary,
+        string              $description,
         ParameterCollection $parameters,
-        ResponseCollection $responses,
-        array $tags = array()
+        ResponseMap         $responses,
+        array               $tags = array()
     )
     {
         if (count($responses) == 0)

@@ -2,11 +2,12 @@
 
 namespace Programster\Swagger;
 
+// https://swagger.io/specification/#parameter-locations
+
 enum ParameterLocation: string
 {
+    case PATH = "path";
     case QUERY = "query";
     case HEADER = "header";
-    case PATH = "path";
-    case FORM_DATA = "formData";
-    case BODY = "body";
+    case COOKIE = "cookie";
 }

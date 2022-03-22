@@ -1,39 +1,60 @@
 <?php
 
 /*
- *
+ * https://swagger.io/specification/#parameter-object
  */
 
 namespace Programster\Swagger;
 
 class Parameter implements \JsonSerializable
 {
-    protected readonly string $m_name; //"name": "name",
-    protected readonly string $m_description; //"description": "The name to give the dataset.",
-    protected readonly bool $m_required; // "required": true,
-    protected readonly Type $m_type; //"type": "integer",
-    protected readonly ParameterLocation $m_in; //"in": "formData"
+    private readonly ?Schema $schema;
+    private readonly ?ContentMap $content;
 
 
-    public function __construct(string $name, string $description, bool $required, Type $type, ParameterLocation $in)
+    /**
+     * https://swagger.io/specification/#parameter-object
+     * @param string $name
+     * @param ParameterLocation $in
+     * @param bool $required
+     * @param Schema|ContentMap $contentOrSchema
+     * @param string|null $description
+     * @param bool|null $deprecated
+     * @param bool|null $allowEmptyValue
+     * @throws \Exception - if allowEmptyValue set to true, but parameter is not located in the query.
+     */
+    public function __construct(
+        private readonly string $name,
+        private readonly ParameterLocation $in,
+        private readonly bool $required,
+        Schema | ContentMap $contentOrSchema,
+        private readonly ?string $description = null,
+        private readonly ?bool $deprecated = null,
+        private readonly ?bool $allowEmptyValue = null
+    )
     {
-        $this->m_name = $name;
-        $this->m_description = $description;
-        $this->m_required = $required;
-        $this->m_type = $type;
-        $this->m_in = $in;
+        if ($in !== ParameterLocation::QUERY && $this->allowEmptyValue === true)
+        {
+            throw new \Exception("allowEmptyValue can only be set to true for parameters located in the query");
+        }
     }
 
 
     public function toArray()
     {
-        return array(
+        $arrayForm = array(
             'name' => $this->m_name,
-            'description' => $this->m_description,
+            'in' => $this->m_in,
             'required' => $this->m_required,
-            'type' => $this->m_type,
-            'in' => $this->m_in
         );
+
+        if ($this->description !== null) {$arrayForm['description'] = $this->description; }
+        if ($this->deprecated !== null) {$arrayForm['deprecated'] = $this->deprecated; }
+        if ($this->allowEmptyValue !== null) {$arrayForm['allowEmptyValue'] = $this->allowEmptyValue; }
+        if ($this->schema !== null) {$arrayForm['schema'] = $this->schema; }
+        if ($this->content !== null) {$arrayForm['content'] = $this->content; }
+
+        return $arrayForm;
     }
 
 
@@ -41,9 +62,5 @@ class Parameter implements \JsonSerializable
     {
         return $this->toArray();
     }
-
-
-    # Setters
-    public function setRequired($flag) { $this->m_required = $flag; }
 }
 

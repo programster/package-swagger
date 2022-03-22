@@ -8,7 +8,7 @@ namespace Programster\Swagger;
 
 final class ParameterCollection extends \ArrayObject
 {
-    public function __construct(Parameter ...$parameters)
+    public function __construct(Parameter | Reference ...$parameters)
     {
         parent::__construct($parameters);
     }
@@ -16,7 +16,7 @@ final class ParameterCollection extends \ArrayObject
 
     public function append(mixed $value) : void
     {
-        if ($value instanceof Parameter)
+        if ($value instanceof Parameter || $value instanceof Reference)
         {
             parent::append($value);
         }
@@ -29,7 +29,7 @@ final class ParameterCollection extends \ArrayObject
 
     public function offsetSet(mixed $index, mixed $newval) : void
     {
-        if ($newval instanceof Parameter)
+        if ($newval instanceof Parameter || $newval instanceof Reference)
         {
             parent::offsetSet($index, $newval);
         }
