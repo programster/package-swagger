@@ -63,7 +63,7 @@ class SchemaArray
     {
         $arrayForm = array('type' => Type::ARRAY);
 
-        if ($this->description !== null) { $arrayForm['description'] = $this->description]; }
+        if ($this->description !== null) { $arrayForm['description'] = $this->description; }
         if ($this->required !== null) { $arrayForm['required'] = $this->required; }
         if ($this->minItems !== null) { $arrayForm['minItems'] = $this->minItems; }
         if ($this->maxItems !== null) { $arrayForm['maxItems'] = $this->maxItems; }
