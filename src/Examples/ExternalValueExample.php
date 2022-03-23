@@ -23,7 +23,7 @@ class ExternalValueExample implements \JsonSerializable
 
     public function jsonSerialize(): mixed
     {
-        $arrayForm = ['externalValue' => $this->externalValue];
+        $arrayForm = array('externalValue' => $this->externalValue);
         if ($this->summary !== null) { $arrayForm['summary'] = $this->summary; }
         if ($this->description !== null) { $arrayForm['description'] = $this->description; }
         return $arrayForm;

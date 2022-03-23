@@ -21,10 +21,10 @@ class RequestBody implements \JsonSerializable
 
     public function jsonSerialize(): mixed
     {
-        $arrayForm = ['content' => $this->content];
+        $arrayForm = array('content' => $this->content);
 
-        if ($this->required !== null) { $arrayForm = ['required' => $this->required]; }
-        if ($this->description !== null) { $arrayForm = ['description' => $this->description]; }
+        if ($this->required !== null) { $arrayForm ['required'] = $this->required; }
+        if ($this->description !== null) { $arrayForm['description'] = $this->description; }
 
         return $arrayForm;
     }

@@ -30,11 +30,23 @@ class OpenApi implements \JsonSerializable
      */
     public function __toString()
     {
+        return $this->toYaml();
+    }
+
+
+    public function toYaml() : string
+    {
+        return yaml_emit(json_decode(json_encode($this), true));
+    }
+
+
+    public function toJson() : string
+    {
         return json_encode($this, JSON_PRETTY_PRINT, JSON_UNESCAPED_SLASHES);
     }
 
 
-    public function jsonSerialize(): mixed
+    public function toArray()
     {
         $arrayForm = [
             'openapi' => "3.0.3",
@@ -49,5 +61,11 @@ class OpenApi implements \JsonSerializable
         if ($this->externalDocs !== null)  { $arrayForm['externalDocs'] = $this->externalDocs; }
 
         return $arrayForm;
+    }
+
+
+    public function jsonSerialize(): mixed
+    {
+        return $this->toArray();
     }
 }

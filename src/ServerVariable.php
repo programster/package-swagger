@@ -47,7 +47,7 @@ class ServerVariable implements \JsonSerializable
 
     public function jsonSerialize(): mixed
     {
-        $arrayForm = ['default' => $this->default];
+        $arrayForm = array('default' => $this->default);
 
         if ($this->enum !== null) { $arrayForm['enum'] = $this->enum; }
         if ($this->description !== null) { $arrayForm['description'] = $this->description; }

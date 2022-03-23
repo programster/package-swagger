@@ -18,10 +18,12 @@ class Server implements \JsonSerializable
 
     public function jsonSerialize(): mixed
     {
-        $arrayForm = ['url' => $this->url];
+        $arrayForm = [
+            'url' => $this->url
+        ];
 
-        if ($this->description !== null) { $arrayForm = ['description' => $this->description]; }
-        if ($this->variables !== null) { $arrayForm = ['variables' => $this->variables]; }
+        if ($this->description !== null) { $arrayForm['description'] = $this->description; }
+        if ($this->variables !== null) { $arrayForm['variables'] = $this->variables; }
 
         return $arrayForm;
     }

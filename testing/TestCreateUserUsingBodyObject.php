@@ -45,7 +45,9 @@ function main()
         ])
     );
 
-    $exampleSuccessResponse = new ValueExample(json_encode(['message' => "Successfully did x."]));
+    $exampleSuccessResponse = new ValueExample(
+        ['message' => "Successfully did x."]
+    );
 
     $genericSuccessResponse = new Response(
         description: "A generic success response.",

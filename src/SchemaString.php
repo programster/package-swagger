@@ -23,13 +23,13 @@ class SchemaString implements \JsonSerializable
 
     public function jsonSerialize(): mixed
     {
-        $arrayForm = ['type' => Type::STRING];
+        $arrayForm = array('type' => Type::STRING);
 
-        if ($this->default !== null) { $arrayForm = ['default' => $this->default]; }
-        if ($this->minLength !== null) { $arrayForm = ['minLength' => $this->minLength]; }
-        if ($this->maxLength !== null) { $arrayForm = ['maxLength' => $this->maxLength]; }
-        if ($this->pattern !== null) { $arrayForm = ['pattern' => $this->pattern]; }
-        if ($this->format !== null) { $arrayForm = ['format' => $this->format]; }
+        if ($this->default !== null) { $arrayForm['default'] = $this->default; }
+        if ($this->minLength !== null) { $arrayForm['minLength'] = $this->minLength; }
+        if ($this->maxLength !== null) { $arrayForm['maxLength'] = $this->maxLength; }
+        if ($this->pattern !== null) { $arrayForm['pattern'] = $this->pattern; }
+        if ($this->format !== null) { $arrayForm['format'] = $this->format; }
 
         return $arrayForm;
     }

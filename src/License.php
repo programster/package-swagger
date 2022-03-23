@@ -17,7 +17,7 @@ class License implements \JsonSerializable
 
     public function jsonSerialize(): mixed
     {
-        $arrayForm = ['name' => $this->name];
+        $arrayForm['name'] = $this->name;
 
         if ($this->url !== null)
         {

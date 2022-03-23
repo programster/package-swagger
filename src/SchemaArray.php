@@ -61,16 +61,16 @@ class SchemaArray
 
     public function jsonSerialize(): mixed
     {
-        $arrayForm = ['type' => Type::ARRAY];
+        $arrayForm = array('type' => Type::ARRAY);
 
-        if ($this->description !== null) { $arrayForm = ['description' => $this->description]; }
-        if ($this->required !== null) { $arrayForm = ['required' => $this->required]; }
-        if ($this->minItems !== null) { $arrayForm = ['minItems' => $this->minItems]; }
-        if ($this->maxItems !== null) { $arrayForm = ['maxItems' => $this->maxItems]; }
-        if ($this->contains !== null) { $arrayForm = ['contains' => $this->contains]; }
-        if ($this->minContains !== null) { $arrayForm = ['minContains' => $this->minContains]; }
-        if ($this->maxContains !== null) { $arrayForm = ['maxContains' => $this->maxContains]; }
-        if ($this->items !== null) { $arrayForm = ['items' => ['type' => $this->items]]; }
+        if ($this->description !== null) { $arrayForm['description'] = $this->description]; }
+        if ($this->required !== null) { $arrayForm['required'] = $this->required; }
+        if ($this->minItems !== null) { $arrayForm['minItems'] = $this->minItems; }
+        if ($this->maxItems !== null) { $arrayForm['maxItems'] = $this->maxItems; }
+        if ($this->contains !== null) { $arrayForm['contains'] = $this->contains; }
+        if ($this->minContains !== null) { $arrayForm['minContains'] = $this->minContains; }
+        if ($this->maxContains !== null) { $arrayForm['maxContains'] = $this->maxContains; }
+        if ($this->items !== null) { $arrayForm['items'] = array('type' => $this->items); }
 
         return $arrayForm;
     }

@@ -31,13 +31,13 @@ class SchemaObject implements \JsonSerializable
 
     public function jsonSerialize(): mixed
     {
-        $arrayForm = ['type' => Type::ARRAY];
+        $arrayForm = array('type' => Type::OBJECT);
 
-        if ($this->description !== null) { $arrayForm = ['description' => $this->description]; }
-        if ($this->properties !== null) { $arrayForm = ['properties' => $this->properties]; }
-        if ($this->requiredProperties !== null) { $arrayForm = ['required' => $this->requiredProperties]; }
-        if ($this->minProperties !== null) { $arrayForm = ['minProperties' => $this->minProperties]; }
-        if ($this->maxProperties !== null) { $arrayForm = ['maxProperties' => $this->maxProperties]; }
+        if ($this->description !== null) { $arrayForm['description'] = $this->description; }
+        if ($this->properties !== null) { $arrayForm['properties'] = $this->properties; }
+        if ($this->requiredProperties !== null) { $arrayForm['required'] = $this->requiredProperties; }
+        if ($this->minProperties !== null) { $arrayForm['minProperties'] = $this->minProperties; }
+        if ($this->maxProperties !== null) { $arrayForm['maxProperties'] = $this->maxProperties; }
 
         return $arrayForm;
     }

@@ -88,7 +88,6 @@ final class JwtBearer implements \JsonSerializable
     {
         $arrayForm = [
             'type' => $this->m_type,
-
         ];
 
         if ($this->m_description !== null) { $arrayForm['description'] = $this->m_description; }
