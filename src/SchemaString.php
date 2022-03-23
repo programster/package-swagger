@@ -7,7 +7,7 @@
 namespace Programster\Swagger;
 
 
-class SchemaString implements \JsonSerializable
+class SchemaString implements SchemaInterface, \JsonSerializable
 {
     public function __construct(
         private readonly ?string $default = null,

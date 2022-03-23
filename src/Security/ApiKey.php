@@ -8,6 +8,8 @@
 namespace Programster\Swagger\Security;
 
 
+use Programster\Swagger\ParameterLocation;
+
 final class ApiKey implements InterfaceSecurityScheme, \JsonSerializable
 {
     /**

@@ -6,6 +6,7 @@ namespace Programster\Swagger\Examples;
 use Programster\Swagger\Header;
 use Programster\Swagger\Reference;
 
+
 class ExampleMap implements \JsonSerializable
 {
     private array $m_map;

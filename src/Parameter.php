@@ -25,8 +25,8 @@ class Parameter implements \JsonSerializable
         private readonly string $name,
         private readonly ParameterLocation $in,
         private readonly bool $required,
-        private readonly ContentMap $content,
-        private readonly SchemaString | SchemaNumber | SchemaArray | SchemaInt | SchemaObject | Reference $schema,
+        private readonly ?ContentMap $content = null,
+        private readonly SchemaInterface | Reference | null $schema = null,
         private readonly ?string $description = null,
         private readonly ?bool $deprecated = null,
         private readonly ?bool $allowEmptyValue = null,
@@ -138,7 +138,7 @@ class Parameter implements \JsonSerializable
         string $name,
         ParameterLocation $in,
         bool $required,
-        SchemaString | SchemaNumber | SchemaArray | SchemaInt | SchemaObject | Reference $schema,
+        SchemaInterface | Reference $schema,
         ?string $description = null,
         ?bool $deprecated = null,
         ?bool $allowEmptyValue = null,
@@ -148,14 +148,21 @@ class Parameter implements \JsonSerializable
         mixed $example = null
     )
     {
-        if (get_class($example) === ExampleMap::class)
+        if ($example === null)
         {
-            $examples = $example->toArray();
-            $example = null;
+            $examples = null;
         }
         else
         {
-            $examples = null;
+            if (get_class($example) === ExampleMap::class)
+            {
+                $examples = $example->toArray();
+                $example = null;
+            }
+            else
+            {
+                $examples = null;
+            }
         }
 
         return new Parameter(
@@ -219,9 +226,9 @@ class Parameter implements \JsonSerializable
     public function toArray()
     {
         $arrayForm = array(
-            'name' => $this->m_name,
-            'in' => $this->m_in,
-            'required' => $this->m_required,
+            'name' => $this->name,
+            'in' => $this->in,
+            'required' => $this->required,
         );
 
         if ($this->description !== null) { $arrayForm['description'] = $this->description; }

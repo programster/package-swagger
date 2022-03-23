@@ -7,7 +7,7 @@
 namespace Programster\Swagger;
 
 
-class SchemaObject implements \JsonSerializable
+class SchemaObject implements SchemaInterface, \JsonSerializable
 {
     /**
      * Create a Schema for an object.

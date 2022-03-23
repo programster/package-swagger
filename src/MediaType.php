@@ -18,12 +18,12 @@ class MediaType implements \JsonSerializable
      * https://swagger.io/specification/#media-type-object
      * @param SchemaString|SchemaNumber|SchemaArray|SchemaInt|SchemaObject|Reference $schema
      * @param ExampleMap|ValueExample|ExternalValueExample |null $example
-     * @param EncodingObject|null $encoding
+     * @param Encoding|null $encoding
      */
     public function __construct(
-        private readonly SchemaString | SchemaNumber | SchemaArray | SchemaInt | SchemaObject | Reference $schema,
+        private readonly SchemaInterface | Reference $schema,
         private readonly ExampleMap | ValueExample | ExternalValueExample | null $example = null,
-        private readonly ?EncodingObject $encoding = null
+        private readonly ?Encoding $encoding = null
     )
     {
 

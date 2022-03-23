@@ -27,7 +27,7 @@ final class PathCollection implements \JsonSerializable
             }
 
             /* @var $path \Programster\Swagger\Path */
-            $arrayForm[$path->getRelativePath()] = $path->toArray();
+            $arrayForm[$path->getRelativePath()] = $path;
         }
 
         $this->arrayForm = $arrayForm;

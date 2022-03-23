@@ -6,7 +6,8 @@
 
 namespace Programster\Swagger;
 
-final class ParameterCollection extends \ArrayObject
+
+final class ParameterCollection extends \ArrayObject implements \JsonSerializable
 {
     public function __construct(Parameter | Reference ...$parameters)
     {
@@ -37,5 +38,11 @@ final class ParameterCollection extends \ArrayObject
         {
             throw new \Exception("Cannot add a non Parameter value to a " . __CLASS__);
         }
+    }
+
+
+    public function jsonSerialize(): mixed
+    {
+        return $this->getArrayCopy();
     }
 }

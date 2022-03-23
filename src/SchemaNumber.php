@@ -7,9 +7,8 @@
 namespace Programster\Swagger;
 
 
-use JetBrains\PhpStorm\Internal\TentativeType;
 
-class SchemaNumber implements \JsonSerializable
+class SchemaNumber implements SchemaInterface, \JsonSerializable
 {
     public function __construct(
         private readonly ?bool $required = null,

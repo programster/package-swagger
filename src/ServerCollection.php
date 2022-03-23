@@ -6,7 +6,9 @@
 
 namespace Programster\Swagger;
 
-final class ServerCollection extends \ArrayObject
+use JetBrains\PhpStorm\Internal\TentativeType;
+
+final class ServerCollection extends \ArrayObject implements \JsonSerializable
 {
     public function __construct(Server ...$servers)
     {
@@ -37,5 +39,10 @@ final class ServerCollection extends \ArrayObject
         {
             throw new \Exception("Cannot add a non Server value to a " . __CLASS__);
         }
+    }
+
+    public function jsonSerialize(): mixed
+    {
+        return $this->getArrayCopy();
     }
 }

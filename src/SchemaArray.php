@@ -7,7 +7,7 @@
 namespace Programster\Swagger;
 
 
-class SchemaArray
+class SchemaArray implements SchemaInterface, \JsonSerializable
 {
     /**
      * http://json-schema.org/understanding-json-schema/reference/array.html?highlight=array
