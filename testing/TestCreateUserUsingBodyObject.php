@@ -6,6 +6,7 @@
 
 namespace Programster\Swagger\Testing;
 
+use Programster\Swagger\Components;
 use Programster\Swagger\Contact;
 use Programster\Swagger\ContentMap;
 use Programster\Swagger\Examples\ValueExample;
@@ -27,8 +28,12 @@ use Programster\Swagger\Operation;
 use Programster\Swagger\PathCollection;
 use Programster\Swagger\Response;
 use Programster\Swagger\SchemaString;
-use Programster\Swagger\SecurityRequirement;
-use Programster\Swagger\SecuritySchemes\HttpBasicAuth;
+use Programster\Swagger\Security\JwtBearer;
+use Programster\Swagger\Security\NamedSecurityScheme;
+
+use Programster\Swagger\Security\SecurityRequirementCollection;
+use Programster\Swagger\Security\SecuritySchemeMap;
+use Programster\Swagger\Security\HttpBasicAuth;
 
 
 require_once(__DIR__ . '/../vendor/autoload.php');
@@ -36,7 +41,8 @@ require_once(__DIR__ . '/../vendor/autoload.php');
 
 function main()
 {
-    // add a path/endpoint for users
+    $jwtSecurityScheme = new NamedSecurityScheme("jwt", new JwtBearer());
+    $jwtBearerSecurityRequirement = $jwtSecurityScheme->createSecurityRequirement([]);
 
     $successResponseSchema = new SchemaObject(
         description: "A success response object",
@@ -91,7 +97,8 @@ function main()
         responses: $createUserResponses,
         summary: "Add a user to the system",
         description:"Add a user to the system",
-        requestBody: $userRequestBody
+        requestBody: $userRequestBody,
+        security: new SecurityRequirementCollection($jwtBearerSecurityRequirement)
     );
 
     $basicAuth = new HttpBasicAuth();
@@ -106,11 +113,14 @@ function main()
 
     $usersPath = new Path(relativePath: "/users", operations: $createUserOperation);
     $paths = new PathCollection($usersPath);
+    $securitySchemes = new SecuritySchemeMap($jwtSecurityScheme);
+    $components = new Components(securitySchemes: $securitySchemes);
 
     $document = new OpenApi(
         info: $info,
-        servers: null,
-        paths: $paths
+        paths: $paths,
+        security: new SecurityRequirementCollection($jwtBearerSecurityRequirement),
+        components: $components
     );
 
     //file_put_contents(__DIR__ . '/swagger.json', $document);

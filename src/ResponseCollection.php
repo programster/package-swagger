@@ -22,7 +22,7 @@ class ResponseCollection implements \JsonSerializable
             /* @var $mappedResponse \Programster\Swagger\MappedResponse */
             if (isset($arrayForm[$mappedResponse->getResponseCode()->value]))
             {
-                throw new \Exception("Overlapping response code: " . $mappedResponse->getResponseCode());
+                throw new \Exception("Overlapping response code: " . $mappedResponse->getResponseCode()->value);
             }
 
             $arrayForm[$mappedResponse->getResponseCode()->value] = $mappedResponse->getResponse();

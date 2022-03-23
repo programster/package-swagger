@@ -6,7 +6,7 @@
 
 namespace Programster\Swagger;
 
-use JetBrains\PhpStorm\Internal\TentativeType;
+use Programster\Swagger\Security\SecurityRequirementCollection;
 
 class OpenApi implements \JsonSerializable
 {
@@ -30,7 +30,7 @@ class OpenApi implements \JsonSerializable
      */
     public function __toString()
     {
-        return $this->toYaml();
+        return $this->toJson();
     }
 
 

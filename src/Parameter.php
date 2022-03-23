@@ -111,7 +111,7 @@ class Parameter implements \JsonSerializable
 
                 default:
                 {
-                    throw new Exception("Unrecognized style: " . $this->style);
+                    throw new Exception("Unrecognized style: " . $this->style->value);
                 }
             }
         }

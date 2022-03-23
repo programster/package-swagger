@@ -6,6 +6,15 @@
 
 namespace Programster\Swagger;
 
+use Programster\Swagger\Security\ApiKey;
+use Programster\Swagger\Security\HttpBasicAuth;
+use Programster\Swagger\Security\ImplicitOauth2;
+use Programster\Swagger\Security\InterfaceSecurityScheme;
+use Programster\Swagger\Security\JwtBearer;
+use Programster\Swagger\Security\NoSecurity;
+use Programster\Swagger\Security\SecurityRequirement;
+use Programster\Swagger\Security\SecurityRequirementCollection;
+
 class Operation implements \JsonSerializable
 {
     /**
@@ -21,7 +30,7 @@ class Operation implements \JsonSerializable
      * @param string|null $externalDocs
      * @param Callbacks|null $callbacks
      * @param bool|null $deprecated
-     * @param SecurityRequirement|null $securityRequirement
+     * @param SecurityRequirementCollection|SecurityRequirement|null $security
      * @param ServerCollection|null $servers
      * @throws \Exception
      */
@@ -37,7 +46,7 @@ class Operation implements \JsonSerializable
         private readonly ?string $externalDocs = null,
         private readonly ?Callbacks $callbacks = null,
         private readonly ?bool $deprecated = null,
-        private readonly ?SecurityRequirement $securityRequirement = null,
+        private readonly SecurityRequirementCollection | SecurityRequirement | null $security = null,
         private readonly ?ServerCollection $servers = null
     )
     {
@@ -74,7 +83,7 @@ class Operation implements \JsonSerializable
         if ($this->externalDocs !== null)  { $arrayForm['externalDocs'] = $this->externalDocs; }
         if ($this->callbacks !== null)  { $arrayForm['callbacks'] = $this->callbacks; }
         if ($this->deprecated !== null)  { $arrayForm['deprecated'] = $this->deprecated; }
-        if ($this->securityRequirement !== null)  { $arrayForm['securityRequirement'] = $this->securityRequirement; }
+        if ($this->security !== null)  { $arrayForm['security'] = $this->security; }
         if ($this->servers !== null)  { $arrayForm['servers'] = $this->servers; }
 
         return $arrayForm;

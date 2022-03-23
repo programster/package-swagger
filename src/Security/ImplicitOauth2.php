@@ -5,14 +5,14 @@
  * https://github.com/OAI/OpenAPI-Specification/blob/master/versions/2.0.md#security-scheme-object
  */
 
-namespace Programster\Swagger\SecuritySchemes;
+namespace Programster\Swagger\Security;
 
 use Programster\Swagger\OAuth\OauthFlows;
 
 
-final class ImplicitOauth2 implements \JsonSerializable
+final class ImplicitOauth2 implements InterfaceSecurityScheme, \JsonSerializable
 {
-    private function __construct(OauthFlows $flows)
+    public function __construct(private readonly OauthFlows $flows)
     {
 
     }

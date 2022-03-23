@@ -5,16 +5,16 @@
  * https://github.com/OAI/OpenAPI-Specification/blob/master/versions/2.0.md#security-scheme-object
  */
 
-namespace Programster\Swagger\SecuritySchemes;
+namespace Programster\Swagger\Security;
 
 
-final class ApiKey implements \JsonSerializable
+final class ApiKey implements InterfaceSecurityScheme, \JsonSerializable
 {
     /**
      * @param string $name - The name of the header, query or cookie parameter to be used.
      * @param ParameterLocation $in - The location of the API key.
      */
-    private function __construct(
+    public function __construct(
         private readonly string $name,
         private readonly ParameterLocation $in
     )

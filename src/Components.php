@@ -3,6 +3,7 @@
 namespace Programster\Swagger;
 
 use Programster\Swagger\Examples\ExampleMap;
+use Programster\Swagger\Security\SecuritySchemeMap;
 
 class Components implements \JsonSerializable
 {

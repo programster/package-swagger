@@ -5,10 +5,10 @@
  * https://swagger.io/specification/#security-scheme-object
  */
 
-namespace Programster\Swagger\SecuritySchemes;
+namespace Programster\Swagger\Security;
 
 
-final class HttpBasicAuth implements \JsonSerializable
+final class HttpBasicAuth implements InterfaceSecurityScheme, \JsonSerializable
 {
     public function __construct()
     {

@@ -12,14 +12,15 @@
         }
     ],
     "require": {
-        "php": ">=8.1.0"
+        "php": ">=8.1.0",
+        "ext-yaml": "*"
     },
     "autoload": {
         "psr-4": {
             "Programster\\Swagger\\": "src/",
             "Programster\\Swagger\\Examples\\\\": "src/Examples",
             "Programster\\Swagger\\OAuth\\": "src/OAuth",
-            "Programster\\Swagger\\SecuritySchemes\\": "src/SecuritySchemes"
+            "Programster\\Swagger\\SecuritySchemes\\": "src/Security"
         }
     },
     "autoload-dev": {
