@@ -37,8 +37,9 @@ class OpenApi implements \JsonSerializable
     public function jsonSerialize(): mixed
     {
         $arrayForm = [
+            'openapi' => "3.0.3",
             'info' => $this->info,
-            'paths' => $this->paths
+            'paths' => $this->paths,
         ];
 
         if ($this->servers !== null)  { $arrayForm['servers'] = $this->servers; }
