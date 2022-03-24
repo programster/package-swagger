@@ -2,6 +2,8 @@
 
 namespace Programster\Swagger\Schemas;
 
+use Programster\Swagger\Reference;
+
 class NamedSchema
 {
     public function __construct(private readonly string $name, private readonly SchemaInterface | Reference $schema)

@@ -7,6 +7,8 @@
 namespace Programster\Swagger\Schemas;
 
 
+use Programster\Swagger\Type;
+
 class SchemaNumber implements SchemaInterface, \JsonSerializable
 {
     public function __construct(

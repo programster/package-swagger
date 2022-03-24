@@ -9,6 +9,7 @@ namespace Programster\Swagger\Schemas;
 use Programster\Swagger\Format;
 use Programster\Swagger\Type;
 
+
 class SchemaString implements SchemaInterface, \JsonSerializable
 {
     public function __construct(
