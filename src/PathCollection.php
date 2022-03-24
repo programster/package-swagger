@@ -34,6 +34,11 @@ final class PathCollection implements \JsonSerializable
     }
 
 
+    public function toArray() : array
+    {
+        return $this->arrayForm;
+    }
+
 
     public function jsonSerialize(): mixed
     {
