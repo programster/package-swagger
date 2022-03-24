@@ -20,7 +20,21 @@ class OpenApi implements \JsonSerializable
         private readonly ?ExternalDocumentation $externalDocs = null
     )
     {
+        // Check to make sure that every path in the path collection provided is unique.
+        $pathRoutes = [];
 
+        foreach ($paths as $path)
+        {
+            /* @var $path Path */
+            if (isset($pathRoutes[$path->getRelativePath()]))
+            {
+                $msg = "You cannot have two paths with the same relative path: {$path->getRelativePath()}";
+                throw new \Exception($msg);
+            }
+
+            /* @var $path Path */
+            $pathRoutes[$path->getRelativePath()] = 1;
+        }
     }
 
 
