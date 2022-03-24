@@ -10,9 +10,11 @@ use Programster\Swagger\Security\SecurityRequirementCollection;
 
 class OpenApi implements \JsonSerializable
 {
+    private readonly array $pathMap;
+
     public function __construct(
         private readonly Info $info,
-        private readonly PathCollection $paths,
+        PathCollection $paths,
         private readonly ?ServerCollection $servers = null,
         private readonly ?Components $components = null,
         private readonly ?SecurityRequirementCollection $security = null,
@@ -21,20 +23,22 @@ class OpenApi implements \JsonSerializable
     )
     {
         // Check to make sure that every path in the path collection provided is unique.
-        $pathRoutes = [];
+        $pathMap = [];
 
         foreach ($paths as $path)
         {
             /* @var $path Path */
-            if (isset($pathRoutes[$path->getRelativePath()]))
+            if (isset($pathMap[$path->getRelativePath()]))
             {
                 $msg = "You cannot have two paths with the same relative path: {$path->getRelativePath()}";
                 throw new \Exception($msg);
             }
 
             /* @var $path Path */
-            $pathRoutes[$path->getRelativePath()] = 1;
+            $pathMap[$path->getRelativePath()] = $path;
         }
+
+        $this->pathMap = $pathMap;
     }
 
 
@@ -65,7 +69,7 @@ class OpenApi implements \JsonSerializable
         $arrayForm = [
             'openapi' => "3.0.3",
             'info' => $this->info,
-            'paths' => $this->paths,
+            'paths' => $this->pathMap,
         ];
 
         if ($this->servers !== null)  { $arrayForm['servers'] = $this->servers; }
