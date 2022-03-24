@@ -31,7 +31,8 @@ class MediaType implements \JsonSerializable
     }
 
 
-    #[ArrayShape(['schema' => "mixed", 'encoding' => "mixed", 'examples' => "mixed", 'example' => "mixed"])] public function toArray() : array
+    #[ArrayShape(['schema' => "mixed", 'encoding' => "mixed", 'examples' => "mixed", 'example' => "mixed"])]
+    public function toArray() : array
     {
         $arrayForm = [
             'schema' => $this->schema,
