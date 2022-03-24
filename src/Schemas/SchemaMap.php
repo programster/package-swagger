@@ -24,7 +24,7 @@ class SchemaMap implements \JsonSerializable
                 throw new \Exception("{$schema->getName()} already taken in " . __CLASS__);
             }
 
-            $map[$schema->getName()] = $schema;
+            $map[$schema->getName()] = $schema->getSchema();
         }
 
         $this->map = $map;
