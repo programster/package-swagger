@@ -4,8 +4,10 @@
  * http://json-schema.org/understanding-json-schema/reference/object.html
  */
 
-namespace Programster\Swagger;
+namespace Programster\Swagger\Schemas;
 
+
+use Programster\Swagger\Type;
 
 class SchemaObject implements SchemaInterface, \JsonSerializable
 {

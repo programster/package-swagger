@@ -4,15 +4,14 @@
  * http://json-schema.org/understanding-json-schema/reference/numeric.html#integer
  */
 
-namespace Programster\Swagger;
-
+namespace Programster\Swagger\Schemas;
 
 
 class SchemaInt implements SchemaInterface, \JsonSerializable
 {
     public function __construct(
-        private readonly ?bool $required = null,
         private readonly ?string $description = null,
+        private readonly ?bool $required = null,
         private readonly int|null $minimum = null,
         private readonly int|null $maximum = null,
         private readonly int|null $multipleOf = null,

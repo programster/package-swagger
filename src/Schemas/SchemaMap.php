@@ -1,6 +1,6 @@
 <?php
 
-namespace Programster\Swagger;
+namespace Programster\Swagger\Schemas;
 
 
 class SchemaMap implements \JsonSerializable

@@ -20,7 +20,8 @@
             "Programster\\Swagger\\": "src/",
             "Programster\\Swagger\\Examples\\\\": "src/Examples",
             "Programster\\Swagger\\OAuth\\": "src/OAuth",
-            "Programster\\Swagger\\SecuritySchemes\\": "src/Security"
+            "Programster\\Swagger\\Schemas\\": "src/Schemas",
+            "Programster\\Swagger\\Security\\": "src/Security"
         }
     },
     "autoload-dev": {

@@ -4,13 +4,13 @@
  * http://json-schema.org/understanding-json-schema/reference/numeric.html#integer
  */
 
-namespace Programster\Swagger;
-
+namespace Programster\Swagger\Schemas;
 
 
 class SchemaNumber implements SchemaInterface, \JsonSerializable
 {
     public function __construct(
+        private readonly ?string $description = null,
         private readonly ?bool $required = null,
         private readonly float|int|null $minimum = null,
         private readonly float|int|null $maximum = null,

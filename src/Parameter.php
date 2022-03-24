@@ -7,6 +7,7 @@
 namespace Programster\Swagger;
 
 use Programster\Swagger\Examples\ExampleMap;
+use Programster\Swagger\Schemas\SchemaInterface;
 
 class Parameter implements \JsonSerializable
 {

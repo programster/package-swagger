@@ -4,7 +4,7 @@
  * http://json-schema.org/understanding-json-schema/reference/array.html?highlight=array
  */
 
-namespace Programster\Swagger;
+namespace Programster\Swagger\Schemas;
 
 
 class SchemaArray implements SchemaInterface, \JsonSerializable

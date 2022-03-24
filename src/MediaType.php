@@ -10,6 +10,7 @@ use JetBrains\PhpStorm\ArrayShape;
 use Programster\Swagger\Examples\ExampleMap;
 use Programster\Swagger\Examples\ExternalValueExample;
 use Programster\Swagger\Examples\ValueExample;
+use Programster\Swagger\Schemas\SchemaInterface;
 
 
 class MediaType implements \JsonSerializable
