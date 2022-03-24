@@ -7,6 +7,8 @@
 namespace Programster\Swagger\Schemas;
 
 
+use Programster\Swagger\Type;
+
 class SchemaArray implements SchemaInterface, \JsonSerializable
 {
     /**
@@ -40,9 +42,9 @@ class SchemaArray implements SchemaInterface, \JsonSerializable
         private readonly ?bool $required = null,
         private readonly ?int $minItems = null,
         private readonly ?int $maxItems = null,
-        private readonly ?Type $items = null,
+        private readonly ?SchemaInterface $items = null,
         private readonly ?bool $uniqueItems = null,
-        private readonly ?Type $contains = null,
+        private readonly ?SchemaInterface $contains = null,
         private readonly ?int $minContains = null,
         private readonly ?int $maxContains = null
     )
