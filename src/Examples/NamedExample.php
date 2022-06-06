@@ -5,6 +5,13 @@ namespace Programster\Swagger\Examples;
 
 class NamedExample
 {
+    /**
+     * Create a named example.
+     * @param string $name - the unique name for this example to distinguish it from other examples.
+     * @param ExternalValueExample|ValueExample $example
+     * @param string|null $summary - a summary of this example.
+     * @param string|null $description - a longer description of this example.
+     */
     public function __construct(
         private readonly string $name,
         private readonly ExternalValueExample | ValueExample $example,
