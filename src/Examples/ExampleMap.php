@@ -69,7 +69,7 @@ class ExampleMap implements \JsonSerializable
                 $exampleArrayForm['description'] = $namedExample->getDescription();
             }
 
-            if ($namedExample->getDescription() !== null)
+            if ($namedExample->getSummary() !== null)
             {
                 $exampleArrayForm['summary'] = $namedExample->getSummary();
             }
