@@ -26,6 +26,6 @@ class NamedExample
     # Accessors
     public function getName() : string { return $this->name; }
     public function getExample() : ExternalValueExample | ValueExample { return $this->example; }
-    public function getSummary() : ?string { return $this->name; }
-    public function getDescription() : ?string { return $this->name; }
+    public function getSummary() : ?string { return $this->summary; }
+    public function getDescription() : ?string { return $this->description; }
 }
