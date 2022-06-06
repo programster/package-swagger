@@ -72,7 +72,7 @@ class SchemaArray implements SchemaInterface, \JsonSerializable
         if ($this->contains !== null) { $arrayForm['contains'] = $this->contains; }
         if ($this->minContains !== null) { $arrayForm['minContains'] = $this->minContains; }
         if ($this->maxContains !== null) { $arrayForm['maxContains'] = $this->maxContains; }
-        if ($this->items !== null) { $arrayForm['items'] = array('type' => $this->items); }
+        if ($this->items !== null) { $arrayForm['items'] = $this->items; }
 
         return $arrayForm;
     }
