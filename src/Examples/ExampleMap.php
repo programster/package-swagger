@@ -12,20 +12,23 @@ class ExampleMap implements \JsonSerializable
     private array $m_map;
 
 
-    public function __construct(string $name, ExternalValueExample | ValueExample $example)
+    public function __construct(NamedExample ...$examples)
     {
-        $this->m_map = array($name => $example);
+        foreach ($examples as $example)
+        {
+            $this->add($example);
+        }
     }
 
 
-    public function add(string $name, ExternalValueExample | ValueExample $example)
+    public function add(NamedExample $example) : void
     {
-        if (isset($this->m_map[$name]))
+        if (isset($this->m_map[$example->getName()]))
         {
             throw new \Exception("{$name} already taken in " . __CLASS__);
         }
 
-        $this->m_map[$name] = $example;
+        $this->m_map[$example->getName()] = $example;
     }
 
 
@@ -35,15 +38,46 @@ class ExampleMap implements \JsonSerializable
      * @param Header|Reference $mediaType
      * @return void
      */
-    public function addOrReplace(string $name, ExternalValueExample | ValueExample $example)
+    public function addOrReplace(NamedExample $example)
     {
-        $this->m_map[$name] = $example;
+        $this->m_map[$example->getName()] = $example;
     }
 
 
     public function toArray(): array
     {
-        return $this->m_map;
+        $mapArrayForm = [];
+
+        foreach ($this->m_map as $exampleName => $namedExample)
+        {
+            /* @var $namedExample \Programster\Swagger\Examples\NamedExample */
+            $subExampleObject = $namedExample->getExample();
+
+            if ($subExampleObject instanceof ValueExample)
+            {
+                $exampleArrayForm = [
+                    'value' => $subExampleObject->jsonSerialize()
+                ];
+            }
+            else
+            {
+                $exampleArrayForm = $subExampleObject->jsonSerialize();
+            }
+
+            if ($namedExample->getDescription() !== null)
+            {
+                $exampleArrayForm['description'] = $namedExample->getDescription();
+            }
+
+            if ($namedExample->getDescription() !== null)
+            {
+                $exampleArrayForm['summary'] = $namedExample->getSummary();
+            }
+
+            $mapArrayForm[$exampleName] = $exampleArrayForm;
+        }
+
+        return $mapArrayForm;
     }
 
 

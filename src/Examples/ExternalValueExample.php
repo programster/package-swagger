@@ -10,9 +10,7 @@ namespace Programster\Swagger\Examples;
 class ExternalValueExample implements \JsonSerializable
 {
     public function __construct(
-        private readonly string $externalValue,
-        private readonly ?string $summary,
-        private readonly ?string $description,
+        private readonly string $externalValue
     )
     {
         if (filter_var($this->externalValue, FILTER_VALIDATE_URL) === false)
@@ -21,11 +19,16 @@ class ExternalValueExample implements \JsonSerializable
         }
     }
 
+
     public function jsonSerialize(): mixed
     {
+        return $this->toArray();
+    }
+
+
+    public function toArray() : array
+    {
         $arrayForm = array('externalValue' => $this->externalValue);
-        if ($this->summary !== null) { $arrayForm['summary'] = $this->summary; }
-        if ($this->description !== null) { $arrayForm['description'] = $this->description; }
         return $arrayForm;
     }
 }

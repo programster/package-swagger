@@ -10,19 +10,15 @@ namespace Programster\Swagger\Examples;
 class ValueExample implements \JsonSerializable
 {
     public function __construct(
-        private readonly string|int|float|bool|array $value,
-        private readonly ?string $summary = null,
-        private readonly ?string $description = null
+        private readonly string|int|float|bool|array $value
     )
     {
 
     }
 
+
     public function jsonSerialize(): mixed
     {
-        $arrayForm = $this->value;
-        if ($this->summary !== null) { $arrayForm['summary'] = $this->summary; }
-        if ($this->description !== null) { $arrayForm['description'] = $this->description; }
-        return $arrayForm;
+        return $this->value;
     }
 }
