@@ -15,8 +15,8 @@ class NamedExample
     public function __construct(
         private readonly string $name,
         private readonly ExternalValueExample | ValueExample $example,
-        private readonly ?string $summary,
-        private readonly ?string $description,
+        private readonly ?string $summary = null,
+        private readonly ?string $description = null,
     )
     {
 
