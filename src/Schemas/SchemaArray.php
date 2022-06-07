@@ -44,7 +44,7 @@ class SchemaArray implements SchemaInterface, \JsonSerializable
         private readonly ?int $maxItems = null,
         private readonly ?SchemaInterface $items = null,
         private readonly ?bool $uniqueItems = null,
-        private readonly ?SchemaInterface $contains = null,
+        //private readonly ?SchemaInterface $contains = null, // not supported in OpenApi 3, only JSON schema.
         private readonly ?int $minContains = null,
         private readonly ?int $maxContains = null
     )
@@ -69,10 +69,12 @@ class SchemaArray implements SchemaInterface, \JsonSerializable
         if ($this->required !== null) { $arrayForm['required'] = $this->required; }
         if ($this->minItems !== null) { $arrayForm['minItems'] = $this->minItems; }
         if ($this->maxItems !== null) { $arrayForm['maxItems'] = $this->maxItems; }
-        if ($this->contains !== null) { $arrayForm['contains'] = $this->contains; }
         if ($this->minContains !== null) { $arrayForm['minContains'] = $this->minContains; }
         if ($this->maxContains !== null) { $arrayForm['maxContains'] = $this->maxContains; }
         if ($this->items !== null) { $arrayForm['items'] = $this->items; }
+
+        // "contains" is not supported in OpenAPI it seems
+        //if ($this->contains !== null) { $arrayForm['contains'] = $this->contains; }
 
         return $arrayForm;
     }
