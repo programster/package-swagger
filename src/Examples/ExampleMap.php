@@ -25,7 +25,7 @@ class ExampleMap implements \JsonSerializable
     {
         if (isset($this->m_map[$example->getName()]))
         {
-            throw new \Exception("{$name} already taken in " . __CLASS__);
+            throw new \Exception("{$example->getName()} already taken in " . __CLASS__);
         }
 
         $this->m_map[$example->getName()] = $example;
