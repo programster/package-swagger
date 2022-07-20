@@ -21,4 +21,8 @@ class ValueExample implements \JsonSerializable
     {
         return $this->value;
     }
+
+
+    # Accessors
+    public function getValue() : string|int|float|bool|array { return $this->value; }
 }
