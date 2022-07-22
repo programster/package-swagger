@@ -19,6 +19,7 @@ class SchemaString implements SchemaInterface, \JsonSerializable
         private readonly ?int       $maxLength   = null,
         private readonly ?string    $pattern     = null,
         private readonly ?Format    $format      = null,
+        private readonly bool       $nullable    = false
     )
     {
 
@@ -35,6 +36,7 @@ class SchemaString implements SchemaInterface, \JsonSerializable
         if ($this->maxLength !== null) { $arrayForm['maxLength'] = $this->maxLength; }
         if ($this->pattern !== null) { $arrayForm['pattern'] = $this->pattern; }
         if ($this->format !== null) { $arrayForm['format'] = $this->format; }
+        if ($this->nullable) { $arrayForm['nullable'] = true; }
 
         return $arrayForm;
     }
