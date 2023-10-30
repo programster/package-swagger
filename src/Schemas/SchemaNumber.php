@@ -19,7 +19,8 @@ class SchemaNumber implements SchemaInterface, \JsonSerializable
         private readonly float|int|null $multipleOf = null,
         private readonly float|int|null $exclusiveMaximum = null,
         private readonly float|int|null $exclusiveMinimum = null,
-        private readonly float|int|null $default = null
+        private readonly float|int|null $default = null,
+        private readonly bool $nullable = false
     )
     {
 
@@ -37,6 +38,7 @@ class SchemaNumber implements SchemaInterface, \JsonSerializable
         if ($this->exclusiveMinimum !== null) { $arrayForm['exclusiveMinimum'] = $this->exclusiveMinimum; }
         if ($this->exclusiveMaximum !== null) { $arrayForm['exclusiveMaximum'] = $this->exclusiveMaximum; }
         if ($this->default !== null) { $arrayForm['default'] = $this->default; }
+        if ($this->nullable !== false) { $arrayForm['nullable'] = $this->nullable; }
 
         return $arrayForm;
     }
