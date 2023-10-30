@@ -20,6 +20,7 @@ class SchemaInt implements SchemaInterface, \JsonSerializable
         private readonly int|null $exclusiveMaximum = null,
         private readonly int|null $exclusiveMinimum = null,
         private readonly ?int $default = null,
+        private readonly bool $nullable = false,
     )
     {
 
@@ -38,6 +39,7 @@ class SchemaInt implements SchemaInterface, \JsonSerializable
         if ($this->exclusiveMinimum !== null)   { $arrayForm['exclusiveMinimum']    = $this->exclusiveMinimum; }
         if ($this->exclusiveMaximum !== null)   { $arrayForm['exclusiveMaximum']    = $this->exclusiveMaximum; }
         if ($this->default !== null)            { $arrayForm['default']             = $this->default; }
+        if ($this->nullable !== false)          { $arrayForm['nullable']            = $this->nullable; }
 
         return $arrayForm;
     }
