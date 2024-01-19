@@ -157,7 +157,7 @@ class Parameter implements \JsonSerializable
         {
             if (get_class($example) === ExampleMap::class)
             {
-                $examples = $example->toArray();
+                $examples = $example;
                 $example = null;
             }
             else
