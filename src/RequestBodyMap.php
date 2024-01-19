@@ -15,7 +15,7 @@ class RequestBodyMap implements \JsonSerializable
 
     public function __construct(string $name, RequestBody | Reference $responseBody)
     {
-        $this->m_responses = [$name->value => $responseBody];
+        $this->m_responses = [$name => $responseBody];
     }
 
 
