@@ -16,8 +16,6 @@ class SchemaArray implements SchemaInterface, \JsonSerializable
      *
      * @param string|null $description
      *
-     * @param bool|null $required
-     *
      * @param int|null $minItems
      *
      * @param int|null $maxItems
@@ -39,7 +37,6 @@ class SchemaArray implements SchemaInterface, \JsonSerializable
      */
     public function __construct(
         private readonly ?string $description = null,
-        private readonly ?bool $required = null,
         private readonly ?int $minItems = null,
         private readonly ?int $maxItems = null,
         private readonly ?SchemaInterface $items = null,
@@ -66,7 +63,6 @@ class SchemaArray implements SchemaInterface, \JsonSerializable
         $arrayForm = array('type' => Type::ARRAY);
 
         if ($this->description !== null) { $arrayForm['description'] = $this->description; }
-        if ($this->required !== null) { $arrayForm['required'] = $this->required; }
         if ($this->minItems !== null) { $arrayForm['minItems'] = $this->minItems; }
         if ($this->maxItems !== null) { $arrayForm['maxItems'] = $this->maxItems; }
         if ($this->minContains !== null) { $arrayForm['minContains'] = $this->minContains; }

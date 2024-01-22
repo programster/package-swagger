@@ -13,7 +13,6 @@ class SchemaBool implements SchemaInterface, \JsonSerializable
 {
     public function __construct(
         private readonly ?string $description = null,
-        private readonly ?bool $required = null,
         private readonly ?bool $default = null,
     )
     {
@@ -25,7 +24,6 @@ class SchemaBool implements SchemaInterface, \JsonSerializable
     {
         $arrayForm = array('type' => Type::BOOL);
 
-        if ($this->required !== null)           { $arrayForm['required']            = $this->required; }
         if ($this->description !== null)        { $arrayForm['description']         = $this->description; }
         if ($this->default !== null)            { $arrayForm['default']             = $this->default; }
 

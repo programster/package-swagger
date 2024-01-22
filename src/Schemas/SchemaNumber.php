@@ -13,7 +13,6 @@ class SchemaNumber implements SchemaInterface, \JsonSerializable
 {
     public function __construct(
         private readonly ?string $description = null,
-        private readonly ?bool $required = null,
         private readonly float|int|null $minimum = null,
         private readonly float|int|null $maximum = null,
         private readonly float|int|null $multipleOf = null,
@@ -31,7 +30,6 @@ class SchemaNumber implements SchemaInterface, \JsonSerializable
     {
         $arrayForm = array('type' => Type::NUMBER);
 
-        if ($this->required !== null) { $arrayForm['required'] = $this->required; }
         if ($this->minimum !== null) { $arrayForm['minimum'] = $this->minimum; }
         if ($this->maximum !== null) { $arrayForm['maximum'] = $this->maximum; }
         if ($this->multipleOf !== null) { $arrayForm['multipleOf'] = $this->multipleOf; }
