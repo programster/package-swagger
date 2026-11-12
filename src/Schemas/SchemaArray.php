@@ -80,6 +80,7 @@ class SchemaArray implements SchemaInterface, \JsonSerializable
             'description' => $this->m_description,
             'minItems' => $this->m_minItems,
             'maxItems' => $this->m_maxItems,
+            'uniqueItems' => $this->m_uniqueItems,
             'minContains' => $this->m_minContains,
             'maxContains' => $this->m_maxContains,
             'items' => $this->m_items,

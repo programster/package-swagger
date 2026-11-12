@@ -1,0 +1,155 @@
+{
+    "openapi": "3.0.3",
+    "info": {
+        "title": "Users API",
+        "version": "1.0",
+        "description": "An API for managing users.",
+        "contact": {
+            "name": "Support",
+            "email": "support@example.com"
+        },
+        "license": {
+            "name": "MIT",
+            "url": "https://opensource.org/licenses/MIT"
+        }
+    },
+    "paths": {
+        "/users/{id}": {
+            "get": {
+                "responses": {
+                    "200": {
+                        "description": "The user.",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/User"
+                                },
+                                "example": {
+                                    "id": "abc",
+                                    "name": "Bob"
+                                }
+                            }
+                        },
+                        "headers": {
+                            "X-Rate-Limit": {
+                                "description": "Requests left.",
+                                "schema": {
+                                    "type": "string"
+                                }
+                            }
+                        }
+                    }
+                },
+                "summary": "Get a user.",
+                "parameters": [
+                    {
+                        "name": "id",
+                        "in": "path",
+                        "required": true,
+                        "schema": {
+                            "type": "string",
+                            "format": "uuid"
+                        }
+                    }
+                ],
+                "tags": [
+                    "users"
+                ],
+                "operationId": "getUser"
+            }
+        },
+        "/users": {
+            "post": {
+                "responses": {
+                    "201": {
+                        "description": "The user.",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/User"
+                                },
+                                "example": {
+                                    "id": "abc",
+                                    "name": "Bob"
+                                }
+                            }
+                        },
+                        "headers": {
+                            "X-Rate-Limit": {
+                                "description": "Requests left.",
+                                "schema": {
+                                    "type": "string"
+                                }
+                            }
+                        }
+                    }
+                },
+                "summary": "Create a user.",
+                "requestBody": {
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "$ref": "#/components/schemas/User"
+                            }
+                        }
+                    },
+                    "required": true,
+                    "description": "The user to create."
+                },
+                "tags": [
+                    "users"
+                ],
+                "operationId": "createUser"
+            }
+        }
+    },
+    "servers": [
+        {
+            "url": "https://api.example.com/v1",
+            "description": "Production"
+        }
+    ],
+    "components": {
+        "schemas": {
+            "User": {
+                "type": "object",
+                "description": "A user.",
+                "properties": {
+                    "id": {
+                        "type": "string",
+                        "format": "uuid"
+                    },
+                    "name": {
+                        "type": "string",
+                        "minLength": 3,
+                        "maxLength": 255
+                    }
+                },
+                "required": [
+                    "name"
+                ]
+            }
+        },
+        "securitySchemes": {
+            "apiKey": {
+                "type": "apiKey",
+                "name": "api_key",
+                "in": "header"
+            }
+        }
+    },
+    "security": [
+        {
+            "apiKey": []
+        }
+    ],
+    "tags": [
+        {
+            "name": "users",
+            "description": "Managing users."
+        }
+    ],
+    "externalDocs": {
+        "url": "https://docs.example.com"
+    }
+}
