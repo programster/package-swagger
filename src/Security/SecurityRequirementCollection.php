@@ -1,31 +1,25 @@
 <?php
 
 /*
- * A collection that can only take Parameters
+ * A collection that can only take SecurityRequirements
  */
 
 namespace Programster\Swagger\Security;
 
-use Programster\Swagger\Security\ApiKey;
-use Programster\Swagger\Security\HttpBasicAuth;
-use Programster\Swagger\Security\ImplicitOauth2;
-use Programster\Swagger\Security\InterfaceSecurityScheme;
-use Programster\Swagger\Security\JwtBearer;
-use Programster\Swagger\Security\NoSecurity;
-
 
 final class SecurityRequirementCollection implements \JsonSerializable
 {
-    private readonly array $schemes;
+    private readonly array $m_requirements;
+
 
     public function __construct(SecurityRequirement ...$requirements)
     {
-        $this->schemes = $requirements;
+        $this->m_requirements = $requirements;
     }
 
 
-    public function jsonSerialize(): mixed
+    public function jsonSerialize() : array
     {
-        return $this->schemes;
+        return $this->m_requirements;
     }
 }

@@ -1,19 +1,14 @@
 <?php
 
-
+/*
+ * A collection that can only take Paths
+ */
 
 namespace Programster\Swagger;
 
 
 final class PathCollection extends \ArrayObject implements \JsonSerializable
 {
-    private readonly array $arrayForm;
-
-
-    /**
-     * @param Path ...$paths
-     * @throws \Exception - if two of the paths provided have the same relative path.
-     */
     public function __construct(Path ...$paths)
     {
         parent::__construct($paths);
@@ -22,11 +17,11 @@ final class PathCollection extends \ArrayObject implements \JsonSerializable
 
     /**
      * Append a path to this array object.
-     * @param $value
+     * @param mixed $value - the path to append.
      * @return void
      * @throws \Exception - if the value passed is not an instance of a Path
      */
-    public function append($value)
+    public function append(mixed $value) : void
     {
         if ($value instanceof Path)
         {
@@ -41,10 +36,10 @@ final class PathCollection extends \ArrayObject implements \JsonSerializable
 
     /**
      * Override a specific path.
-     * @param mixed $index
-     * @param mixed $newval
+     * @param mixed $index - the index to set the path at.
+     * @param mixed $newval - the path to set.
      * @return void
-     * @throws \Exception - the the new value passed is not of a Path type.
+     * @throws \Exception - if the new value passed is not of a Path type.
      */
     public function offsetSet(mixed $index, mixed $newval) : void
     {
@@ -59,7 +54,7 @@ final class PathCollection extends \ArrayObject implements \JsonSerializable
     }
 
 
-    public function jsonSerialize(): mixed
+    public function jsonSerialize() : array
     {
         return $this->getArrayCopy();
     }

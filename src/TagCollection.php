@@ -2,20 +2,20 @@
 
 namespace Programster\Swagger;
 
-use JetBrains\PhpStorm\Internal\TentativeType;
 
 class TagCollection implements \JsonSerializable
 {
-    private readonly array $tags;
+    private readonly array $m_tags;
+
 
     public function __construct(Tag ...$tags)
     {
-        $this->tags = $tags;
+        $this->m_tags = $tags;
     }
 
 
     public function jsonSerialize(): mixed
     {
-        return $this->tags;
+        return $this->m_tags;
     }
 }

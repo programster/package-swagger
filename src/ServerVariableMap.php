@@ -2,7 +2,6 @@
 
 namespace Programster\Swagger;
 
-use JetBrains\PhpStorm\Internal\TentativeType;
 
 class ServerVariableMap implements \JsonSerializable
 {
@@ -11,10 +10,17 @@ class ServerVariableMap implements \JsonSerializable
 
     public function __construct(string $variableName, ServerVariable $serverVariable)
     {
-        $this->m_map[$variableName] = $serverVariable;
+        $this->m_map = [$variableName => $serverVariable];
     }
 
 
+    /**
+     * Add another server variable.
+     * @param string $variableName - the name of the variable, as used in the server's URL.
+     * @param ServerVariable $serverVariable - the variable.
+     * @return void
+     * @throws \Exception - if there's already a variable with that name.
+     */
     public function add(string $variableName, ServerVariable $serverVariable)
     {
         if (isset($this->m_map[$variableName]))
@@ -28,8 +34,8 @@ class ServerVariableMap implements \JsonSerializable
 
     /**
      * This is the same as add, except that it won't throw an exception if the key is already taken.
-     * @param string $key
-     * @param Header|Reference $serverVariable
+     * @param string $key - the name of the variable, as used in the server's URL.
+     * @param ServerVariable $serverVariable - the variable.
      * @return void
      */
     public function addOrReplace(string $key, ServerVariable $serverVariable)

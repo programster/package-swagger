@@ -11,36 +11,48 @@ use Programster\Swagger\Type;
 
 class SchemaObject implements SchemaInterface, \JsonSerializable
 {
+    private readonly ?string $m_description;
+    private readonly ?SchemaMap $m_properties;
+    private readonly ?array $m_requiredProperties;
+    private readonly ?int $m_minProperties;
+    private readonly ?int $m_maxProperties;
+
+
     /**
      * Create a Schema for an object.
      * @param string|null $description - A description of the object.
      * @param SchemaMap|null $properties - the properties that may form the object.
-     * @param array|null $requiredProperties - a list of property names that MUST be provided
+     * @param string[]|null $requiredProperties - a list of property names that MUST be provided
      * @param int|null $minProperties - the minimum number of properties to expect in the object.
      * @param int|null $maxProperties - the maximum number of properties to expect in the object.
      */
     public function __construct(
-        private readonly ?string $description = null,
-        private readonly ?SchemaMap $properties = null,
-        private readonly ?array $requiredProperties = null,
-        private readonly ?int $minProperties = null,
-        private readonly ?int $maxProperties = null
+        ?string $description = null,
+        ?SchemaMap $properties = null,
+        ?array $requiredProperties = null,
+        ?int $minProperties = null,
+        ?int $maxProperties = null
     )
     {
-
+        $this->m_description = $description;
+        $this->m_properties = $properties;
+        $this->m_requiredProperties = $requiredProperties;
+        $this->m_minProperties = $minProperties;
+        $this->m_maxProperties = $maxProperties;
     }
 
 
     public function jsonSerialize(): mixed
     {
-        $arrayForm = array('type' => Type::OBJECT);
+        $optionalFields = [
+            'description' => $this->m_description,
+            'properties' => $this->m_properties,
+            'required' => $this->m_requiredProperties,
+            'minProperties' => $this->m_minProperties,
+            'maxProperties' => $this->m_maxProperties,
+        ];
 
-        if ($this->description !== null) { $arrayForm['description'] = $this->description; }
-        if ($this->properties !== null) { $arrayForm['properties'] = $this->properties; }
-        if ($this->requiredProperties !== null) { $arrayForm['required'] = $this->requiredProperties; }
-        if ($this->minProperties !== null) { $arrayForm['minProperties'] = $this->minProperties; }
-        if ($this->maxProperties !== null) { $arrayForm['maxProperties'] = $this->maxProperties; }
-
-        return $arrayForm;
+        $isProvided = function (mixed $value) : bool { return $value !== null; };
+        return array_merge(['type' => Type::OBJECT], array_filter($optionalFields, $isProvided));
     }
 }

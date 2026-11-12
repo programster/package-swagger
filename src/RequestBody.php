@@ -9,23 +9,27 @@ namespace Programster\Swagger;
 
 class RequestBody implements \JsonSerializable
 {
-    public function __construct(
-        private readonly ContentMap $content,
-        private ?string $description = null,
-        private ?bool $required = null
-    )
-    {
+    private readonly ContentMap $m_content;
+    private readonly ?string $m_description;
+    private readonly ?bool $m_required;
 
+
+    public function __construct(ContentMap $content, ?string $description = null, ?bool $required = null)
+    {
+        $this->m_content = $content;
+        $this->m_description = $description;
+        $this->m_required = $required;
     }
 
 
     public function jsonSerialize(): mixed
     {
-        $arrayForm = array('content' => $this->content);
+        $optionalFields = [
+            'required' => $this->m_required,
+            'description' => $this->m_description,
+        ];
 
-        if ($this->required !== null) { $arrayForm ['required'] = $this->required; }
-        if ($this->description !== null) { $arrayForm['description'] = $this->description; }
-
-        return $arrayForm;
+        $isProvided = function (mixed $value) : bool { return $value !== null; };
+        return array_merge(['content' => $this->m_content], array_filter($optionalFields, $isProvided));
     }
 }

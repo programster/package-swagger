@@ -5,16 +5,19 @@ namespace Programster\Swagger;
 
 class Callback implements \JsonSerializable
 {
-    public function __construct(
-        private readonly string $expression,
-        private readonly Path $pathItem
-    )
-    {
+    private readonly string $m_expression;
+    private readonly Path $m_pathItem;
 
+
+    public function __construct(string $expression, Path $pathItem)
+    {
+        $this->m_expression = $expression;
+        $this->m_pathItem = $pathItem;
     }
+
 
     public function jsonSerialize(): mixed
     {
-        return [$this->expression => $this->pathItem];
+        return [$this->m_expression => $this->m_pathItem];
     }
 }

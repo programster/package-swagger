@@ -14,70 +14,76 @@ use Programster\Swagger\Schemas\SchemaInterface;
 
 class Header implements \JsonSerializable
 {
+    private readonly string $m_name;
+    private readonly ?ContentMap $m_content;
+    private readonly ?bool $m_required;
+    private readonly SchemaInterface|Reference|null $m_schema;
+    private readonly ?string $m_description;
+    private readonly ?bool $m_deprecated;
+    private readonly ?bool $m_allowEmptyValue;
+    private readonly ?bool $m_explode;
+    private readonly ?bool $m_allowReserved;
+    private readonly ExternalValueExample|ValueExample|null $m_example;
+    private readonly ?ExampleMap $m_examples;
+
+
     /**
-     * Create a header.
-     * @param string $description - the description for this header.
-     * @param Type $type - the type. E.g. integer/string
+     * Create a header. Use createFromSchema() or createFromContentMap() to create one.
      */
     private function __construct(
-        private readonly string $name,
-        private readonly ?ContentMap $content = null,
-        private readonly ?bool $required = null,
-        private readonly SchemaInterface | Reference | null $schema,
-        private readonly ?string $description = null,
-        private readonly ?bool $deprecated = null,
-        private readonly ?bool $allowEmptyValue = null,
-        private readonly ?bool $explode = null,
-        private readonly ?bool $allowReserved = null,
-        private readonly mixed $example = null,
-        private readonly ?ExampleMap $examples = null
+        string $name,
+        ?ContentMap $content,
+        ?bool $required,
+        SchemaInterface|Reference|null $schema,
+        ?string $description,
+        ?bool $deprecated,
+        ?bool $allowEmptyValue,
+        ?bool $explode,
+        ?bool $allowReserved,
+        ExternalValueExample|ValueExample|null $example,
+        ?ExampleMap $examples
     )
     {
+        $this->m_name = $name;
+        $this->m_content = $content;
+        $this->m_required = $required;
+        $this->m_schema = $schema;
+        $this->m_description = $description;
+        $this->m_deprecated = $deprecated;
+        $this->m_allowEmptyValue = $allowEmptyValue;
+        $this->m_explode = $explode;
+        $this->m_allowReserved = $allowReserved;
+        $this->m_example = $example;
+        $this->m_examples = $examples;
     }
 
 
     /**
-     * Creates a parameter object with the help of a provided Schema (or reference to a schema).
-     * @param string $name
-     * @param bool $required
-     * @param SchemaInterface|Reference $schema
-     * @param string|null $description
-     * @param bool|null $deprecated
-     * @param bool|null $allowEmptyValue
-     * @param bool|null $explode
-     * @param bool|null $allowReserved
-     * @param mixed|null $example
-     * @return Parameter
-     * @throws \Exception
+     * Creates a header object with the help of a provided Schema (or reference to a schema).
+     * @param string $name - the name of the header, e.g. "Authorization".
+     * @param SchemaInterface|Reference $schema - the schema for the header's value, or a reference to one.
+     * @param bool|null $required - whether the header is required.
+     * @param string|null $description - a description of the header.
+     * @param bool|null $deprecated - whether the header is deprecated.
+     * @param bool|null $allowEmptyValue - whether the header may be sent with an empty value.
+     * @param bool|null $explode - whether array or object values generate separate values.
+     * @param bool|null $allowReserved - whether the value may contain reserved characters.
+     * @param ExampleMap|ExternalValueExample|ValueExample|null $example - an example, or a map of named examples.
+     * @return Header
      */
     public static function createFromSchema(
         string $name,
-        SchemaInterface | Reference $schema,
+        SchemaInterface|Reference $schema,
         ?bool $required = null,
         ?string $description = null,
         ?bool $deprecated = null,
         ?bool $allowEmptyValue = null,
         ?bool $explode = null,
         ?bool $allowReserved = null,
-        ExampleMap | ExternalValueExample | ValueExample | null $example = null
+        ExampleMap|ExternalValueExample|ValueExample|null $example = null
     ) : Header
     {
-        if ($example === null)
-        {
-            $examples = null;
-        }
-        else
-        {
-            if (get_class($example) === ExampleMap::class)
-            {
-                $examples = $example->toArray();
-                $example = null;
-            }
-            else
-            {
-                $examples = null;
-            }
-        }
+        $isExampleMap = $example instanceof ExampleMap;
 
         return new Header(
             name: $name,
@@ -89,22 +95,21 @@ class Header implements \JsonSerializable
             allowEmptyValue: $allowEmptyValue,
             explode: $explode,
             allowReserved: $allowReserved,
-            example: $example,
-            examples: $examples
+            example: $isExampleMap ? null : $example,
+            examples: $isExampleMap ? $example : null
         );
     }
 
 
     /**
-     * Creates a parameter object with the help of a provided ContentMap object.
-     * @param string $name
-     * @param bool $required
-     * @param ContentMap $content
-     * @param string|null $description
-     * @param bool|null $deprecated
-     * @param bool|null $allowEmptyValue
-     * @return Parameter
-     * @throws \Exception
+     * Creates a header object with the help of a provided ContentMap object.
+     * @param string $name - the name of the header, e.g. "Authorization".
+     * @param ContentMap $content - the content of the header's value.
+     * @param bool|null $required - whether the header is required.
+     * @param string|null $description - a description of the header.
+     * @param bool|null $deprecated - whether the header is deprecated.
+     * @param bool|null $allowEmptyValue - whether the header may be sent with an empty value.
+     * @return Header
      */
     public static function createFromContentMap(
         string $name,
@@ -133,20 +138,21 @@ class Header implements \JsonSerializable
 
     public function toArray()
     {
-        $arrayForm = array();
+        $optionalFields = [
+            'required' => $this->m_required,
+            'description' => $this->m_description,
+            'deprecated' => $this->m_deprecated,
+            'allowEmptyValue' => $this->m_allowEmptyValue,
+            'schema' => $this->m_schema,
+            'content' => $this->m_content,
+            'explode' => $this->m_explode,
+            'allowReserved' => $this->m_allowReserved,
+            'example' => $this->m_example,
+            'examples' => $this->m_examples,
+        ];
 
-        if ($this->required !== null) { $arrayForm['required'] = $this->required; }
-        if ($this->description !== null) { $arrayForm['description'] = $this->description; }
-        if ($this->deprecated !== null) { $arrayForm['deprecated'] = $this->deprecated; }
-        if ($this->allowEmptyValue !== null) { $arrayForm['allowEmptyValue'] = $this->allowEmptyValue; }
-        if ($this->schema !== null) { $arrayForm['schema'] = $this->schema; }
-        if ($this->content !== null) { $arrayForm['content'] = $this->content; }
-        if ($this->explode !== null) { $arrayForm['explode'] = $this->explode; }
-        if ($this->allowReserved !== null) { $arrayForm['allowReserved'] = $this->allowReserved; }
-        if ($this->example !== null) { $arrayForm['example'] = $this->example; }
-        if ($this->examples !== null) { $arrayForm['examples'] = $this->examples; }
-
-        return $arrayForm;
+        $isProvided = function (mixed $value) : bool { return $value !== null; };
+        return array_filter($optionalFields, $isProvided);
     }
 
 
@@ -157,5 +163,5 @@ class Header implements \JsonSerializable
 
 
     # Accessors
-    public function getName() : string { return $this->name; }
+    public function getName() : string { return $this->m_name; }
 }

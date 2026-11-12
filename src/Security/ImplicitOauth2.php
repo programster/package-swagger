@@ -2,7 +2,7 @@
 
 /*
  * A security object for the swagger doc.
- * https://github.com/OAI/OpenAPI-Specification/blob/master/versions/2.0.md#security-scheme-object
+ * https://swagger.io/specification/#security-scheme-object
  */
 
 namespace Programster\Swagger\Security;
@@ -12,18 +12,20 @@ use Programster\Swagger\OAuth\OauthFlows;
 
 final class ImplicitOauth2 implements InterfaceSecurityScheme, \JsonSerializable
 {
-    public function __construct(private readonly OauthFlows $flows)
-    {
+    private readonly OauthFlows $m_flows;
 
+
+    public function __construct(OauthFlows $flows)
+    {
+        $this->m_flows = $flows;
     }
 
 
-    public function jsonSerialize(): mixed
+    public function jsonSerialize() : array
     {
         return [
             'type' => "oauth2",
-            'flows' => $this->flows,
+            'flows' => $this->m_flows,
         ];
     }
 }
-

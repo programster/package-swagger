@@ -2,7 +2,7 @@
 
 /*
  * A security object for the swagger doc.
- * https://github.com/OAI/OpenAPI-Specification/blob/master/versions/2.0.md#security-scheme-object
+ * https://swagger.io/specification/#security-scheme-object
  */
 
 namespace Programster\Swagger\Security;
@@ -10,16 +10,12 @@ namespace Programster\Swagger\Security;
 
 final class JwtBearer implements InterfaceSecurityScheme, \JsonSerializable
 {
-    public function __construct(){}
-
-
-    public function jsonSerialize() : mixed
+    public function jsonSerialize() : array
     {
         return [
             'type' => "http",
             'scheme' => "bearer",
-            'bearerFormat' => "JWT"
+            'bearerFormat' => "JWT",
         ];
     }
 }
-

@@ -8,28 +8,40 @@ namespace Programster\Swagger;
 
 class Response implements \JsonSerializable
 {
+    private readonly string $m_description;
+    private readonly ContentMap $m_contentMap;
+    private readonly ?HeaderMap $m_headerMap;
+    private readonly ?LinkMap $m_linkMap;
+
+
     public function __construct(
-        private readonly string $description,
-        private readonly ContentMap $contentMap,
-        private readonly ?HeaderMap $headerMap = null,
-        private readonly ?LinkMap $linkMap = null
+        string $description,
+        ContentMap $contentMap,
+        ?HeaderMap $headerMap = null,
+        ?LinkMap $linkMap = null
     )
     {
-
+        $this->m_description = $description;
+        $this->m_contentMap = $contentMap;
+        $this->m_headerMap = $headerMap;
+        $this->m_linkMap = $linkMap;
     }
 
 
     public function toArray() : array
     {
-        $arrayForm = array(
-            'description' => $this->description,
-            'content' => $this->contentMap
-        );
+        $requiredFields = [
+            'description' => $this->m_description,
+            'content' => $this->m_contentMap,
+        ];
 
-        if ($this->headerMap !== null) { $arrayForm['headers'] = $this->headerMap; }
-        if ($this->linkMap !== null) { $arrayForm['links'] = $this->linkMap; }
+        $optionalFields = [
+            'headers' => $this->m_headerMap,
+            'links' => $this->m_linkMap,
+        ];
 
-        return $arrayForm;
+        $isProvided = function (mixed $value) : bool { return $value !== null; };
+        return array_merge($requiredFields, array_filter($optionalFields, $isProvided));
     }
 
 

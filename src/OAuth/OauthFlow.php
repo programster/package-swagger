@@ -5,28 +5,32 @@ namespace Programster\Swagger\OAuth;
 
 class OauthFlow implements \JsonSerializable
 {
-    public function __construct(
-        private readonly string $authorizationUrl,
-        private readonly string $tokenUrl,
-        private readonly ?string $refreshUrl,
-        private readonly string $scopes,
-    )
-    {
+    private readonly string $m_authorizationUrl;
+    private readonly string $m_tokenUrl;
+    private readonly ?string $m_refreshUrl;
+    private readonly string $m_scopes;
 
+
+    public function __construct(string $authorizationUrl, string $tokenUrl, ?string $refreshUrl, string $scopes)
+    {
+        $this->m_authorizationUrl = $authorizationUrl;
+        $this->m_tokenUrl = $tokenUrl;
+        $this->m_refreshUrl = $refreshUrl;
+        $this->m_scopes = $scopes;
     }
 
 
     public function jsonSerialize(): mixed
     {
         $arrayForm = [
-            'authorizationUrl' => $this->authorizationUrl,
-            'tokenUrl' => $this->tokenUrl,
-            'scopes' => $this->scopes,
+            'authorizationUrl' => $this->m_authorizationUrl,
+            'tokenUrl' => $this->m_tokenUrl,
+            'scopes' => $this->m_scopes,
         ];
 
-        if ($this->refreshUrl !== null)
+        if ($this->m_refreshUrl !== null)
         {
-            $arrayForm['refreshUrl'] = $this->refreshUrl;
+            $arrayForm['refreshUrl'] = $this->m_refreshUrl;
         }
 
         return $arrayForm;

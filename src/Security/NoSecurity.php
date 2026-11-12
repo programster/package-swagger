@@ -7,7 +7,6 @@
 
 namespace Programster\Swagger\Security;
 
-use JetBrains\PhpStorm\Internal\TentativeType;
 
 class NoSecurity implements InterfaceSecurityScheme, \JsonSerializable
 {

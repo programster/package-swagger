@@ -3,7 +3,6 @@
 namespace Programster\Swagger\Security;
 
 
-
 class SecuritySchemeMap implements \JsonSerializable
 {
     private readonly array $m_map;
@@ -11,9 +10,11 @@ class SecuritySchemeMap implements \JsonSerializable
 
     /**
      * A mapping of unique keys/names to the various security schemes.
-     * This goes in the Components object for security.
-     * This is not to be confused with a Security Scheme Collection that
-     * @param NamedSecurityScheme ...$namedSecuritySchemes
+     * This goes in the Components object for security. This is not to be confused with the
+     * SecurityRequirementCollection, which says which of these schemes are required.
+     *
+     * @param NamedSecurityScheme ...$namedSecuritySchemes - the schemes, each of which must have a unique name.
+     *
      * @throws \Exception - if provided two or more named security schemes that have the same name.
      */
     public function __construct(NamedSecurityScheme ...$namedSecuritySchemes)
@@ -22,7 +23,6 @@ class SecuritySchemeMap implements \JsonSerializable
 
         foreach ($namedSecuritySchemes as $namedSecurityScheme)
         {
-            /* @var $namedSecurityScheme NamedSecurityScheme */
             if (isset($map[$namedSecurityScheme->getName()]))
             {
                 $msg = "Cannot have two security schemes with the same name: {$namedSecurityScheme->getName()}";

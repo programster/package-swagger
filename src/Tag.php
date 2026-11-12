@@ -2,27 +2,30 @@
 
 namespace Programster\Swagger;
 
-use JetBrains\PhpStorm\Internal\TentativeType;
 
 class Tag implements \JsonSerializable
 {
-    public function __construct(
-        private readonly string $name,
-        private readonly ?string $description = null,
-        private readonly ?ExternalDocumentation $externalDocs = null,
-    )
-    {
+    private readonly string $m_name;
+    private readonly ?string $m_description;
+    private readonly ?ExternalDocumentation $m_externalDocs;
 
+
+    public function __construct(string $name, ?string $description = null, ?ExternalDocumentation $externalDocs = null)
+    {
+        $this->m_name = $name;
+        $this->m_description = $description;
+        $this->m_externalDocs = $externalDocs;
     }
 
 
     public function jsonSerialize(): mixed
     {
-        $arrayForm = array('name' => $this->name);
+        $optionalFields = [
+            'description' => $this->m_description,
+            'externalDocs' => $this->m_externalDocs,
+        ];
 
-        if ($this->description !== null) { $arrayForm['description'] = $this->description; }
-        if ($this->externalDocs !== null) { $arrayForm['externalDocs'] = $this->externalDocs; }
-
-        return $arrayForm;
+        $isProvided = function (mixed $value) : bool { return $value !== null; };
+        return array_merge(['name' => $this->m_name], array_filter($optionalFields, $isProvided));
     }
 }

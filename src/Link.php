@@ -6,10 +6,17 @@
 
 namespace Programster\Swagger;
 
-use JetBrains\PhpStorm\Internal\TentativeType;
 
 class Link implements \JsonSerializable
 {
+    private readonly ?string $m_operationRef;
+    private readonly ?string $m_operationId;
+    private readonly ?array $m_parameters;
+    private readonly mixed $m_requestBody;
+    private readonly ?string $m_description;
+    private readonly ?Server $m_server;
+
+
     /**
      * The Link object represents a possible design-time link for a response. The presence of a link does not guarantee
      * the caller's ability to successfully invoke it, rather it provides a known relationship and traversal mechanism
@@ -41,28 +48,35 @@ class Link implements \JsonSerializable
      * @param Server|null $server - A server object to be used by the target operation.
      */
     public function __construct(
-        private readonly ?string $operationRef,
-        private readonly ?string $operationId,
-        private readonly ?array $parameters,
-        private readonly mixed $requestBody,
-        private readonly ?string $description,
-        private readonly ?Server $server
+        ?string $operationRef,
+        ?string $operationId,
+        ?array $parameters,
+        mixed $requestBody,
+        ?string $description,
+        ?Server $server
     )
     {
-
+        $this->m_operationRef = $operationRef;
+        $this->m_operationId = $operationId;
+        $this->m_parameters = $parameters;
+        $this->m_requestBody = $requestBody;
+        $this->m_description = $description;
+        $this->m_server = $server;
     }
+
 
     public function jsonSerialize(): mixed
     {
-        $arrayForm = [];
+        $optionalFields = [
+            'operationRef' => $this->m_operationRef,
+            'operationId' => $this->m_operationId,
+            'parameters' => $this->m_parameters,
+            'requestBody' => $this->m_requestBody,
+            'description' => $this->m_description,
+            'server' => $this->m_server,
+        ];
 
-        if ($this->operationRef !== null) { $arrayForm['operationRef'] = $this->operationRef; }
-        if ($this->operationId !== null) { $arrayForm['operationId'] = $this->operationId; }
-        if ($this->parameters !== null) { $arrayForm['parameters'] = $this->parameters; }
-        if ($this->requestBody !== null) { $arrayForm['requestBody'] = $this->requestBody; }
-        if ($this->description !== null) { $arrayForm['description'] = $this->description; }
-        if ($this->server !== null) { $arrayForm['server'] = $this->server; }
-
-        return $arrayForm;
+        $isProvided = function (mixed $value) : bool { return $value !== null; };
+        return array_filter($optionalFields, $isProvided);
     }
 }

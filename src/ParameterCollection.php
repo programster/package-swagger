@@ -1,7 +1,7 @@
 <?php
 
 /*
- * A collection that can only take Parameters
+ * A collection that can only take Parameters (or references to them)
  */
 
 namespace Programster\Swagger;
@@ -9,12 +9,15 @@ namespace Programster\Swagger;
 
 final class ParameterCollection extends \ArrayObject implements \JsonSerializable
 {
-    public function __construct(Parameter | Reference ...$parameters)
+    public function __construct(Parameter|Reference ...$parameters)
     {
         parent::__construct($parameters);
     }
 
 
+    /**
+     * @throws \Exception - if the value isn't a Parameter or Reference.
+     */
     public function append(mixed $value) : void
     {
         if ($value instanceof Parameter || $value instanceof Reference)
@@ -28,6 +31,9 @@ final class ParameterCollection extends \ArrayObject implements \JsonSerializabl
     }
 
 
+    /**
+     * @throws \Exception - if the value isn't a Parameter or Reference.
+     */
     public function offsetSet(mixed $index, mixed $newval) : void
     {
         if ($newval instanceof Parameter || $newval instanceof Reference)
@@ -41,7 +47,7 @@ final class ParameterCollection extends \ArrayObject implements \JsonSerializabl
     }
 
 
-    public function jsonSerialize(): mixed
+    public function jsonSerialize() : array
     {
         return $this->getArrayCopy();
     }

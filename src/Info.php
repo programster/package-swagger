@@ -2,35 +2,50 @@
 
 namespace Programster\Swagger;
 
-use JetBrains\PhpStorm\Internal\TentativeType;
 
 class Info implements \JsonSerializable
 {
+    private readonly string $m_title;
+    private readonly string $m_version;
+    private readonly ?string $m_description;
+    private readonly ?string $m_termsOfService;
+    private readonly ?Contact $m_contact;
+    private readonly ?License $m_license;
+
+
     public function __construct(
-        private readonly string $title,
-        private readonly string $version,
-        private readonly ?string $description = null,
-        private readonly ?string $termsOfService = null,
-        private readonly ?Contact $contact = null,
-        private readonly ?License $license = null,
+        string $title,
+        string $version,
+        ?string $description = null,
+        ?string $termsOfService = null,
+        ?Contact $contact = null,
+        ?License $license = null,
     )
     {
-
+        $this->m_title = $title;
+        $this->m_version = $version;
+        $this->m_description = $description;
+        $this->m_termsOfService = $termsOfService;
+        $this->m_contact = $contact;
+        $this->m_license = $license;
     }
 
 
     public function jsonSerialize(): mixed
     {
-        $arrayForm = [
-            'title' => $this->title,
-            'version' => $this->version,
+        $requiredFields = [
+            'title' => $this->m_title,
+            'version' => $this->m_version,
         ];
 
-        if ($this->description !== null) { $arrayForm['description'] = $this->description; }
-        if ($this->termsOfService !== null) { $arrayForm['termsOfService'] = $this->termsOfService; }
-        if ($this->contact !== null) { $arrayForm['contact'] = $this->contact; }
-        if ($this->license !== null) { $arrayForm['license'] = $this->license; }
+        $optionalFields = [
+            'description' => $this->m_description,
+            'termsOfService' => $this->m_termsOfService,
+            'contact' => $this->m_contact,
+            'license' => $this->m_license,
+        ];
 
-        return $arrayForm;
+        $isProvided = function (mixed $value) : bool { return $value !== null; };
+        return array_merge($requiredFields, array_filter($optionalFields, $isProvided));
     }
 }

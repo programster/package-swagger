@@ -5,11 +5,20 @@ namespace Programster\Swagger\OAuth;
 
 class AuthorizationCodeFlow implements \JsonSerializable
 {
+    private readonly string $m_authorizationUrl;
+    private readonly string $m_tokenUrl;
+    private readonly ScopeMap $m_scopes;
+    private readonly ?string $m_refreshUrl;
+
+
+    /**
+     * @throws \Exception - if any of the URLs aren't valid.
+     */
     public function __construct(
-        private readonly string $authorizationUrl,
-        private readonly string $tokenUrl,
-        private readonly ScopeMap $scopes,
-        private readonly ?string $refreshUrl = null,
+        string $authorizationUrl,
+        string $tokenUrl,
+        ScopeMap $scopes,
+        ?string $refreshUrl = null,
     )
     {
         if (filter_var($authorizationUrl, FILTER_VALIDATE_URL) === false)
@@ -26,20 +35,25 @@ class AuthorizationCodeFlow implements \JsonSerializable
         {
             throw new \Exception("{$refreshUrl} is not a valid URL");
         }
+
+        $this->m_authorizationUrl = $authorizationUrl;
+        $this->m_tokenUrl = $tokenUrl;
+        $this->m_scopes = $scopes;
+        $this->m_refreshUrl = $refreshUrl;
     }
 
 
     public function jsonSerialize(): mixed
     {
         $arrayForm = [
-            'authorizationUrl' => $this->authorizationUrl,
-            'tokenUrl' => $this->tokenUrl,
-            'scopes' => $this->scopes,
+            'authorizationUrl' => $this->m_authorizationUrl,
+            'tokenUrl' => $this->m_tokenUrl,
+            'scopes' => $this->m_scopes,
         ];
 
-        if ($this->refreshUrl !== null)
+        if ($this->m_refreshUrl !== null)
         {
-            $arrayForm['refreshUrl'] = $this->refreshUrl;
+            $arrayForm['refreshUrl'] = $this->m_refreshUrl;
         }
 
         return $arrayForm;

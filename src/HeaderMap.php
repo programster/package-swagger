@@ -2,20 +2,22 @@
 
 namespace Programster\Swagger;
 
-use JetBrains\PhpStorm\Internal\TentativeType;
 
 class HeaderMap implements \JsonSerializable
 {
-    private readonly array $map;
+    private readonly array $m_map;
 
 
+    /**
+     * @param Header ...$headers - the headers, each of which must have a unique name.
+     * @throws \Exception - if two of the headers have the same name.
+     */
     public function __construct(Header ...$headers)
     {
         $map = [];
 
         foreach ($headers as $header)
         {
-            /* @var $header Header */
             if (isset($map[$header->getName()]))
             {
                 throw new \Exception("Duplicate header: {$header->getName()}");
@@ -24,13 +26,13 @@ class HeaderMap implements \JsonSerializable
             $map[$header->getName()] = $header;
         }
 
-        $this->map = $map;
+        $this->m_map = $map;
     }
 
 
     public function toArray() : array
     {
-        return $this->map;
+        return $this->m_map;
     }
 
 

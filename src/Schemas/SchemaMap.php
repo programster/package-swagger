@@ -5,12 +5,12 @@ namespace Programster\Swagger\Schemas;
 
 class SchemaMap implements \JsonSerializable
 {
-    private readonly array $map;
+    private readonly array $m_map;
 
 
     /**
-     * @param array|null $map
-     * @throws \Exception - if any of the keys in the map are duplicated, which should be impossible.
+     * @param NamedSchema ...$schemas - the schemas, each of which must have a unique name.
+     * @throws \Exception - if two of the schemas have the same name.
      */
     public function __construct(NamedSchema ...$schemas)
     {
@@ -18,7 +18,6 @@ class SchemaMap implements \JsonSerializable
 
         foreach ($schemas as $schema)
         {
-            /* @var $schema NamedSchema */
             if (isset($map[$schema->getName()]))
             {
                 throw new \Exception("{$schema->getName()} already taken in " . __CLASS__);
@@ -27,12 +26,12 @@ class SchemaMap implements \JsonSerializable
             $map[$schema->getName()] = $schema->getSchema();
         }
 
-        $this->map = $map;
+        $this->m_map = $map;
     }
 
 
     public function jsonSerialize(): array
     {
-        return $this->map;
+        return $this->m_map;
     }
 }

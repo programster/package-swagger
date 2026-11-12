@@ -9,14 +9,21 @@ namespace Programster\Swagger\Examples;
 
 class ExternalValueExample implements \JsonSerializable
 {
-    public function __construct(
-        private readonly string $externalValue
-    )
+    private readonly string $m_externalValue;
+
+
+    /**
+     * @param string $externalValue - the URL of the example.
+     * @throws \Exception - if $externalValue isn't a valid URL.
+     */
+    public function __construct(string $externalValue)
     {
-        if (filter_var($this->externalValue, FILTER_VALIDATE_URL) === false)
+        if (filter_var($externalValue, FILTER_VALIDATE_URL) === false)
         {
             throw new \Exception("externalValue needs to be a valid URL.");
         }
+
+        $this->m_externalValue = $externalValue;
     }
 
 
@@ -28,7 +35,6 @@ class ExternalValueExample implements \JsonSerializable
 
     public function toArray() : array
     {
-        $arrayForm = array('externalValue' => $this->externalValue);
-        return $arrayForm;
+        return ['externalValue' => $this->m_externalValue];
     }
 }

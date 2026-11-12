@@ -2,13 +2,16 @@
 
 namespace Programster\Swagger\OAuth;
 
-use JetBrains\PhpStorm\Internal\TentativeType;
 
 class ScopeMap implements \JsonSerializable
 {
     private readonly array $m_map;
 
 
+    /**
+     * @param Scope ...$scopes - the scopes, each of which must have a unique name.
+     * @throws \Exception - if two of the scopes have the same name.
+     */
     public function __construct(Scope ...$scopes)
     {
         $mapping = [];
@@ -29,6 +32,6 @@ class ScopeMap implements \JsonSerializable
 
     public function jsonSerialize(): mixed
     {
-        return $this->toArray();
+        return $this->m_map;
     }
 }

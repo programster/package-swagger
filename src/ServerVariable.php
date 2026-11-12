@@ -1,7 +1,7 @@
 <?php
 
 /*
- * https://swagger.io/specification/#encoding-object
+ * https://swagger.io/specification/#server-variable-object
  */
 
 namespace Programster\Swagger;
@@ -9,6 +9,11 @@ namespace Programster\Swagger;
 
 class ServerVariable implements \JsonSerializable
 {
+    private readonly string $m_default;
+    private readonly ?string $m_description;
+    private readonly ?array $m_enum;
+
+
     /**
      * @param string $default - The default value to use for substitution, which SHALL be sent if an alternate value is
      * not supplied. Note this behavior is different than the Schema Object's treatment of default values, because in
@@ -17,14 +22,12 @@ class ServerVariable implements \JsonSerializable
      * @param string|null $description - An optional description for the server variable. CommonMark syntax MAY be used
      * for rich text representation.
      *
-     * @param array|null $enum - An enumeration of string values to be used if the substitution options are from a
+     * @param string[]|null $enum - An enumeration of string values to be used if the substitution options are from a
      * limited set. The array SHOULD NOT be empty if provided.
+     *
+     * @throws \Exception - if $enum is empty, or any of its values aren't strings.
      */
-    public function __construct(
-        private string $default,
-        private ?string $description = null,
-        private ?array $enum = null,
-    )
+    public function __construct(string $default, ?string $description = null, ?array $enum = null)
     {
         if ($enum !== null && count($enum) === 0)
         {
@@ -42,16 +45,21 @@ class ServerVariable implements \JsonSerializable
                 }
             }
         }
+
+        $this->m_default = $default;
+        $this->m_description = $description;
+        $this->m_enum = $enum;
     }
 
 
     public function jsonSerialize(): mixed
     {
-        $arrayForm = array('default' => $this->default);
+        $optionalFields = [
+            'enum' => $this->m_enum,
+            'description' => $this->m_description,
+        ];
 
-        if ($this->enum !== null) { $arrayForm['enum'] = $this->enum; }
-        if ($this->description !== null) { $arrayForm['description'] = $this->description; }
-
-        return $arrayForm;
+        $isProvided = function (mixed $value) : bool { return $value !== null; };
+        return array_merge(['default' => $this->m_default], array_filter($optionalFields, $isProvided));
     }
 }

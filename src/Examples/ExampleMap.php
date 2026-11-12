@@ -3,15 +3,15 @@
 namespace Programster\Swagger\Examples;
 
 
-use Programster\Swagger\Header;
-use Programster\Swagger\Reference;
-
-
 class ExampleMap implements \JsonSerializable
 {
-    private array $m_map;
+    private array $m_map = [];
 
 
+    /**
+     * @param NamedExample ...$examples - the examples, each of which must have a unique name.
+     * @throws \Exception - if two of the examples have the same name.
+     */
     public function __construct(NamedExample ...$examples)
     {
         foreach ($examples as $example)
@@ -21,6 +21,12 @@ class ExampleMap implements \JsonSerializable
     }
 
 
+    /**
+     * Add another example.
+     * @param NamedExample $example - the example to add.
+     * @return void
+     * @throws \Exception - if there's already an example with that name.
+     */
     public function add(NamedExample $example) : void
     {
         if (isset($this->m_map[$example->getName()]))
@@ -33,9 +39,8 @@ class ExampleMap implements \JsonSerializable
 
 
     /**
-     * This is the same as add, except that it won't throw an exception if the key is already taken.
-     * @param string $name
-     * @param Header|Reference $mediaType
+     * This is the same as add, except that it won't throw an exception if the name is already taken.
+     * @param NamedExample $example - the example to add, or to replace the existing one with the same name.
      * @return void
      */
     public function addOrReplace(NamedExample $example)
@@ -50,14 +55,12 @@ class ExampleMap implements \JsonSerializable
 
         foreach ($this->m_map as $exampleName => $namedExample)
         {
-            /* @var $namedExample \Programster\Swagger\Examples\NamedExample */
+            /* @var $namedExample NamedExample */
             $subExampleObject = $namedExample->getExample();
 
             if ($subExampleObject instanceof ValueExample)
             {
-                $exampleArrayForm = [
-                    'value' => $subExampleObject->jsonSerialize()
-                ];
+                $exampleArrayForm = ['value' => $subExampleObject->jsonSerialize()];
             }
             else
             {
@@ -86,4 +89,3 @@ class ExampleMap implements \JsonSerializable
         return $this->toArray();
     }
 }
-

@@ -2,24 +2,30 @@
 
 namespace Programster\Swagger\Security;
 
-use JetBrains\PhpStorm\Internal\TentativeType;
 
 class SecurityRequirement implements \JsonSerializable
 {
-    private array $arrayForm;
+    private readonly string $m_schemeName;
+    private readonly array $m_scopes;
+    private array $m_arrayForm;
 
 
     /**
-     * Create a security requirement object
+     * Create a security requirement object.
      * https://swagger.io/specification/#security-requirement-object
-     * @param string $schemeName - the unique name (ID) of the security scheme within the components object
-     * @param array $scopes - any scopes that need to be utilized to run the operation.
+     *
+     * @param string $schemeName - the unique name (ID) of the security scheme within the components object.
+     *
+     * @param string[] $scopes - any scopes that need to be utilized to run the operation.
+     *
+     * getSchemeName() and getScopes() return the scheme this is created with, not any that are added to it later with
+     * add().
      */
     public function __construct(string $schemeName, array $scopes)
     {
-        $this->arrayForm = [
-            $schemeName => $scopes
-        ];
+        $this->m_schemeName = $schemeName;
+        $this->m_scopes = $scopes;
+        $this->m_arrayForm = [$schemeName => $scopes];
     }
 
 
@@ -27,31 +33,34 @@ class SecurityRequirement implements \JsonSerializable
      * Add another scheme to this requirement.
      * WARNING: This will require all of these schemes to be satisfied. If you want to specify that *either* scheme
      * can be satisfied to pass security, then you need to create separate SecurityRequirement objects and pass them to
-     * the SecurityRequriementCollection.
-     * @param string $schemeName
-     * @param array $scopes
+     * the SecurityRequirementCollection.
+     *
+     * @param string $schemeName - the unique name (ID) of the security scheme within the components object.
+     *
+     * @param string[] $scopes - any scopes that need to be utilized to run the operation.
+     *
      * @return void
-     * @throws \Exception
+     *
+     * @throws \Exception - if this requirement already has a scheme with that name.
      */
     public function add(string $schemeName, array $scopes)
     {
-        if (isset($this->arrayForm[$schemeName]))
+        if (isset($this->m_arrayForm[$schemeName]))
         {
             throw new \Exception("Duplicate scheme name in SecurityRequirement: {$schemeName}");
         }
 
-        $this->arrayForm[$this->schemeName] = $this->scopes;
+        $this->m_arrayForm[$schemeName] = $scopes;
     }
 
 
     public function jsonSerialize(): mixed
     {
-        return $this->arrayForm;
+        return $this->m_arrayForm;
     }
 
 
-    public function getSchemeName() : string { return $this->schemeName; }
-    public function getScopes() : array { return $this->scopes; }
-
-
+    # Accessors
+    public function getSchemeName() : string { return $this->m_schemeName; }
+    public function getScopes() : array { return $this->m_scopes; }
 }

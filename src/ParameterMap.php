@@ -2,40 +2,42 @@
 
 /*
  * A map of named parameters. This is put within the components object, and allows parameters to be re-used
- * basedon their name in this map.
- * https://swagger.io/specification/#responses-object
+ * based on their name in this map.
+ * https://swagger.io/specification/#components-object
  */
 
 namespace Programster\Swagger;
 
 
-
 class ParameterMap implements \JsonSerializable
 {
-    private readonly array $map;
+    private readonly array $m_map;
 
 
+    /**
+     * @param NamedParameter ...$namedParameters - the parameters, each of which must have a unique name.
+     * @throws \Exception - if two of the parameters have the same name.
+     */
     public function __construct(NamedParameter ...$namedParameters)
     {
-        $arrayForm = [];
+        $map = [];
 
         foreach ($namedParameters as $namedParameter)
         {
-            /* @var $namedParameter NamedParameter */
-            if (isset($arrayForm[$namedParameter->getName()]))
+            if (isset($map[$namedParameter->getName()]))
             {
                 throw new \Exception("Parameter name clash: " . $namedParameter->getName());
             }
 
-            $arrayForm[$namedParameter->getName()] = $namedParameter->getParameter();
+            $map[$namedParameter->getName()] = $namedParameter->getParameter();
         }
 
-        $this->map = $arrayForm;
+        $this->m_map = $map;
     }
 
 
     public function jsonSerialize(): mixed
     {
-        return $this->map;
+        return $this->m_map;
     }
 }

@@ -5,9 +5,12 @@ namespace Programster\Swagger;
 
 class Reference implements \JsonSerializable
 {
-    public function __construct(private readonly string $reference)
-    {
+    private readonly string $m_reference;
 
+
+    public function __construct(string $reference)
+    {
+        $this->m_reference = $reference;
     }
 
 
@@ -29,7 +32,7 @@ class Reference implements \JsonSerializable
      */
     public static function createRelativeSchemaDocument(string $documentFilepath)
     {
-        return new Reference("{$documentFilepath}");
+        return new Reference($documentFilepath);
     }
 
 
@@ -47,9 +50,7 @@ class Reference implements \JsonSerializable
 
     public function toArray() : array
     {
-        return [
-            '$ref' => $this->reference,
-        ];
+        return ['$ref' => $this->m_reference];
     }
 
 

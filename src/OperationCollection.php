@@ -1,7 +1,7 @@
 <?php
 
 /*
- * A collection that can only take Parameters
+ * A collection that can only take Operations
  */
 
 namespace Programster\Swagger;
@@ -15,7 +15,10 @@ final class OperationCollection extends \ArrayObject implements \JsonSerializabl
     }
 
 
-    public function append($value)
+    /**
+     * @throws \Exception - if the value isn't an Operation.
+     */
+    public function append(mixed $value) : void
     {
         if ($value instanceof Operation)
         {
@@ -23,11 +26,14 @@ final class OperationCollection extends \ArrayObject implements \JsonSerializabl
         }
         else
         {
-            throw new Exception("Cannot append non Operation to a " . __CLASS__);
+            throw new \Exception("Cannot append non Operation to a " . __CLASS__);
         }
     }
 
 
+    /**
+     * @throws \Exception - if the value isn't an Operation.
+     */
     public function offsetSet(mixed $index, mixed $newval) : void
     {
         if ($newval instanceof Operation)
@@ -36,12 +42,12 @@ final class OperationCollection extends \ArrayObject implements \JsonSerializabl
         }
         else
         {
-            throw new Exception("Cannot add a non Operation value to a " . __CLASS__);
+            throw new \Exception("Cannot add a non Operation value to a " . __CLASS__);
         }
     }
 
 
-    public function jsonSerialize(): mixed
+    public function jsonSerialize() : array
     {
         return $this->getArrayCopy();
     }

@@ -1,12 +1,11 @@
 <?php
 
 /*
- * A collection that can only take Parameters
+ * A collection that can only take Servers
  */
 
 namespace Programster\Swagger;
 
-use JetBrains\PhpStorm\Internal\TentativeType;
 
 final class ServerCollection extends \ArrayObject implements \JsonSerializable
 {
@@ -16,6 +15,9 @@ final class ServerCollection extends \ArrayObject implements \JsonSerializable
     }
 
 
+    /**
+     * @throws \Exception - if the value isn't a Server.
+     */
     public function append(mixed $value) : void
     {
         if ($value instanceof Server)
@@ -29,6 +31,9 @@ final class ServerCollection extends \ArrayObject implements \JsonSerializable
     }
 
 
+    /**
+     * @throws \Exception - if the value isn't a Server.
+     */
     public function offsetSet(mixed $index, mixed $newval) : void
     {
         if ($newval instanceof Server)
@@ -41,7 +46,8 @@ final class ServerCollection extends \ArrayObject implements \JsonSerializable
         }
     }
 
-    public function jsonSerialize(): mixed
+
+    public function jsonSerialize() : array
     {
         return $this->getArrayCopy();
     }

@@ -2,7 +2,6 @@
 
 namespace Programster\Swagger;
 
-use JetBrains\PhpStorm\Internal\TentativeType;
 
 class ContentMap implements \JsonSerializable
 {
@@ -11,12 +10,17 @@ class ContentMap implements \JsonSerializable
 
     public function __construct(MimeType $key, MediaType $mediaType)
     {
-        $this->m_map = [
-            $key->value => $mediaType
-        ];
+        $this->m_map = [$key->value => $mediaType];
     }
 
 
+    /**
+     * Add the media type for another mime type.
+     * @param string $key - the mime type, e.g. "application/json".
+     * @param MediaType $mediaType - the media type to use for it.
+     * @return void
+     * @throws \Exception - if there's already a media type for that mime type.
+     */
     public function add(string $key, MediaType $mediaType)
     {
         if (isset($this->m_map[$key]))
@@ -30,8 +34,8 @@ class ContentMap implements \JsonSerializable
 
     /**
      * This is the same as add, except that it won't throw an exception if the key is already taken.
-     * @param string $key
-     * @param Header|Reference $mediaType
+     * @param string $key - the mime type, e.g. "application/json".
+     * @param MediaType $mediaType - the media type to use for it.
      * @return void
      */
     public function addOrReplace(string $key, MediaType $mediaType)
@@ -51,4 +55,3 @@ class ContentMap implements \JsonSerializable
         return $this->toArray();
     }
 }
-

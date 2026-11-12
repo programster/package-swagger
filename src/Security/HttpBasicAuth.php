@@ -10,17 +10,11 @@ namespace Programster\Swagger\Security;
 
 final class HttpBasicAuth implements InterfaceSecurityScheme, \JsonSerializable
 {
-    public function __construct()
-    {
-        // nothing
-    }
-
-    public function jsonSerialize() : mixed
+    public function jsonSerialize() : array
     {
         return [
             'type' => 'http',
-            'scheme' => "basic"
+            'scheme' => "basic",
         ];
     }
 }
-

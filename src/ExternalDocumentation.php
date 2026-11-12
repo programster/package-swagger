@@ -5,19 +5,25 @@ namespace Programster\Swagger;
 
 class ExternalDocumentation implements \JsonSerializable
 {
-    public function __construct(
-        private readonly string $url,
-        private readonly ?string $description = null
-    )
-    {
+    private readonly string $m_url;
+    private readonly ?string $m_description;
 
+
+    public function __construct(string $url, ?string $description = null)
+    {
+        $this->m_url = $url;
+        $this->m_description = $description;
     }
+
 
     public function jsonSerialize(): mixed
     {
-        $arrayForm = array('url' => $this->url);
+        $arrayForm = ['url' => $this->m_url];
 
-        if ($this->description !== null) { $arrayForm['description'] = $this->description; }
+        if ($this->m_description !== null)
+        {
+            $arrayForm['description'] = $this->m_description;
+        }
 
         return $arrayForm;
     }

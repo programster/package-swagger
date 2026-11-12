@@ -9,20 +9,21 @@ namespace Programster\Swagger\Examples;
 
 class ValueExample implements \JsonSerializable
 {
-    public function __construct(
-        private readonly string|int|float|bool|array $value
-    )
-    {
+    private readonly string|int|float|bool|array $m_value;
 
+
+    public function __construct(string|int|float|bool|array $value)
+    {
+        $this->m_value = $value;
     }
 
 
     public function jsonSerialize(): mixed
     {
-        return $this->value;
+        return $this->m_value;
     }
 
 
     # Accessors
-    public function getValue() : string|int|float|bool|array { return $this->value; }
+    public function getValue() : string|int|float|bool|array { return $this->m_value; }
 }

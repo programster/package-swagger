@@ -4,12 +4,18 @@ namespace Programster\Swagger\OAuth;
 
 class Scope
 {
-    public function __construct(private readonly string $name, private readonly string $description)
+    private readonly string $m_name;
+    private readonly string $m_description;
+
+
+    public function __construct(string $name, string $description)
     {
-        // nothing.
+        $this->m_name = $name;
+        $this->m_description = $description;
     }
 
+
     # Accessors
-    public function getName() : string { return $this->getName(); }
-    public function getDescription() : string { return $this->getDescription(); }
+    public function getName() : string { return $this->m_name; }
+    public function getDescription() : string { return $this->m_description; }
 }

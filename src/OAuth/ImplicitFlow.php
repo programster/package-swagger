@@ -2,15 +2,18 @@
 
 namespace Programster\Swagger\OAuth;
 
-use Programster\Swagger\ScopeMap;
 
 class ImplicitFlow implements \JsonSerializable
 {
-    public function __construct(
-        private readonly string $authorizationUrl,
-        private readonly ScopeMap $scopes,
-        private readonly ?string $refreshUrl = null,
-    )
+    private readonly string $m_authorizationUrl;
+    private readonly ScopeMap $m_scopes;
+    private readonly ?string $m_refreshUrl;
+
+
+    /**
+     * @throws \Exception - if any of the URLs aren't valid.
+     */
+    public function __construct(string $authorizationUrl, ScopeMap $scopes, ?string $refreshUrl = null)
     {
         if (filter_var($authorizationUrl, FILTER_VALIDATE_URL) === false)
         {
@@ -21,19 +24,23 @@ class ImplicitFlow implements \JsonSerializable
         {
             throw new \Exception("{$refreshUrl} is not a valid URL");
         }
+
+        $this->m_authorizationUrl = $authorizationUrl;
+        $this->m_scopes = $scopes;
+        $this->m_refreshUrl = $refreshUrl;
     }
 
 
     public function jsonSerialize(): mixed
     {
         $arrayForm = [
-            'authorizationUrl' => $this->authorizationUrl,
-            'scopes' => $this->scopes,
+            'authorizationUrl' => $this->m_authorizationUrl,
+            'scopes' => $this->m_scopes,
         ];
 
-        if ($this->refreshUrl !== null)
+        if ($this->m_refreshUrl !== null)
         {
-            $arrayForm['refreshUrl'] = $this->refreshUrl;
+            $arrayForm['refreshUrl'] = $this->m_refreshUrl;
         }
 
         return $arrayForm;

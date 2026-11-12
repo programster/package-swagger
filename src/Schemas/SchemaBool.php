@@ -1,7 +1,7 @@
 <?php
 
 /*
- * http://json-schema.org/understanding-json-schema/reference/numeric.html#integer
+ * http://json-schema.org/understanding-json-schema/reference/boolean.html
  */
 
 namespace Programster\Swagger\Schemas;
@@ -11,22 +11,25 @@ use Programster\Swagger\Type;
 
 class SchemaBool implements SchemaInterface, \JsonSerializable
 {
-    public function __construct(
-        private readonly ?string $description = null,
-        private readonly ?bool $default = null,
-    )
-    {
+    private readonly ?string $m_description;
+    private readonly ?bool $m_default;
 
+
+    public function __construct(?string $description = null, ?bool $default = null)
+    {
+        $this->m_description = $description;
+        $this->m_default = $default;
     }
 
 
     public function jsonSerialize(): mixed
     {
-        $arrayForm = array('type' => Type::BOOL);
+        $optionalFields = [
+            'description' => $this->m_description,
+            'default' => $this->m_default,
+        ];
 
-        if ($this->description !== null)        { $arrayForm['description']         = $this->description; }
-        if ($this->default !== null)            { $arrayForm['default']             = $this->default; }
-
-        return $arrayForm;
+        $isProvided = function (mixed $value) : bool { return $value !== null; };
+        return array_merge(['type' => Type::BOOL], array_filter($optionalFields, $isProvided));
     }
 }
