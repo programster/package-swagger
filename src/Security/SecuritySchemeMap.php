@@ -23,7 +23,7 @@ class SecuritySchemeMap implements \JsonSerializable
         foreach ($namedSecuritySchemes as $namedSecurityScheme)
         {
             /* @var $namedSecurityScheme NamedSecurityScheme */
-            if (isset($this->m_map[$namedSecurityScheme->getName()]))
+            if (isset($map[$namedSecurityScheme->getName()]))
             {
                 $msg = "Cannot have two security schemes with the same name: {$namedSecurityScheme->getName()}";
                 throw new \Exception($msg);

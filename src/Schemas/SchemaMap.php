@@ -19,7 +19,7 @@ class SchemaMap implements \JsonSerializable
         foreach ($schemas as $schema)
         {
             /* @var $schema NamedSchema */
-            if (isset($this->map[$schema->getName()]))
+            if (isset($map[$schema->getName()]))
             {
                 throw new \Exception("{$schema->getName()} already taken in " . __CLASS__);
             }
