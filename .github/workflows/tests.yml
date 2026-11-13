@@ -9,9 +9,6 @@ on:
     push:
         branches:
             - master
-            # TEMPORARY: also run on the 4.x branch, where version 4 is developed until it is released.
-            # Remove this line once 4.x has been merged into master.
-            - "4.x"
         tags:
             - "*"
     # Pull requests into the main branch, so they are tested before being merged.
