@@ -20,7 +20,9 @@ use Programster\Swagger\Schemas\SchemaString;
 
 $created = new Response(
     description: "The user was created.",
-    content: new ContentMap(new MediaType(MimeType::JSON, new SchemaString())),
+    content: new ContentMap(
+        new MediaType(MimeType::JSON, new SchemaString())
+    ),
 );
 
 // A response without a body, e.g. for a 204, has no content.
@@ -95,7 +97,11 @@ A response can't have a `Content-Type` header, as OpenAPI ignores it: the respon
 types are.
 
 ```php
-$contentType = new MappedHeader("Content-Type", Header::createFromSchema(new SchemaString()));
+$contentType = new MappedHeader(
+    "Content-Type",
+    Header::createFromSchema(new SchemaString())
+);
+
 $wrong = new Response("A user.", headers: new HeaderCollection($contentType)); // Throws InvalidValueException
 ```
 
@@ -117,7 +123,9 @@ $getUser = Link::createFromOperationId(
 
 $createdWithLink = new Response(
     description: "The user was created.",
-    content: new ContentMap(new MediaType(MimeType::JSON, new SchemaString())),
+    content: new ContentMap(
+        new MediaType(MimeType::JSON, new SchemaString())
+    ),
     links: new LinkMap(new NamedLink("GetUser", $getUser)),
 );
 
@@ -159,7 +167,11 @@ each. The components' headers are a `HeaderMap`, under their component names, wh
 use Programster\Swagger\HeaderMap;
 use Programster\Swagger\NamedHeader;
 
-$rateLimit = new NamedHeader("RateLimit", Header::createFromSchema(new SchemaInt(), description: "Requests left."));
+$rateLimit = new NamedHeader(
+    "RateLimit",
+    Header::createFromSchema(new SchemaInt(), description: "Requests left.")
+);
+
 $componentsWithHeader = new Components(headers: new HeaderMap($rateLimit));
 
 $limited = new Response(

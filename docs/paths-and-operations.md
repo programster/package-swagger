@@ -26,7 +26,9 @@ use Programster\Swagger\Response;
 use Programster\Swagger\ResponseCode;
 use Programster\Swagger\ResponseCollection;
 
-$ok = new ResponseCollection(new MappedResponse(ResponseCode::OK, new Response("OK.")));
+$ok = new ResponseCollection(
+    new MappedResponse(ResponseCode::OK, new Response("OK."))
+);
 
 $users = new Path(
     "/users",
@@ -72,7 +74,12 @@ The `Path` checks this, and throws an `InvalidDocumentException` if a variable h
 isn't in the path:
 
 ```php
-$broken = new Path("/groups/{id}", new PathItem(new OperationCollection(new Operation(Method::GET, $ok)))); // Throws InvalidDocumentException
+$getGroup = new Operation(Method::GET, $ok);
+
+$broken = new Path(
+    "/groups/{id}",
+    new PathItem(new OperationCollection($getGroup))
+); // Throws InvalidDocumentException
 ```
 
 A parameter can also be a reference to one in the components (a `ParameterReference`). What a reference points at
@@ -122,7 +129,10 @@ use Programster\Swagger\MediaType;
 use Programster\Swagger\MimeType;
 use Programster\Swagger\RequestBody;
 
-$body = new RequestBody(new ContentMap(new MediaType(MimeType::JSON)));
+$body = new RequestBody(
+    new ContentMap(new MediaType(MimeType::JSON))
+);
+
 $createUser = new Operation(Method::POST, $ok, requestBody: $body);
 $search = new Operation(Method::GET, $ok, requestBody: $body); // Throws InvalidValueException
 ```
@@ -150,7 +160,12 @@ $listUsers = new Operation(Method::GET, $ok, tags: ["users"]);
 
 $document = new OpenApi(
     info: new Info("Users API", "1.0"),
-    paths: new PathCollection(new Path("/users", new PathItem(new OperationCollection($listUsers)))),
+    paths: new PathCollection(
+        new Path(
+            "/users",
+            new PathItem(new OperationCollection($listUsers))
+        )
+    ),
     tags: new TagCollection(
         new Tag("users", "Managing users.", new ExternalDocumentation("https://docs.example.com/users")),
     ),
@@ -172,7 +187,9 @@ use Programster\Swagger\NamedCallback;
 
 $onUserCreated = new Callback(
     '{$request.body#/callbackUrl}',
-    new PathItem(new OperationCollection(new Operation(Method::POST, $ok, summary: "A user was created.")))
+    new PathItem(
+        new OperationCollection(new Operation(Method::POST, $ok, summary: "A user was created."))
+    )
 );
 
 $subscribe = new Operation(

@@ -95,7 +95,11 @@ $testContact = function () : void {
         new Contact();
     };
 
-    SmokeTest::expectException(InvalidValueException::class, $createEmptyContact, "at least one of a name, URL or email");
+    SmokeTest::expectException(
+        InvalidValueException::class,
+        $createEmptyContact,
+        "at least one of a name, URL or email"
+    );
 };
 
 $smoke->run("Contact", $testContact);

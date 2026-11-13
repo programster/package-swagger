@@ -102,7 +102,11 @@ $userSchema = new SchemaObject(
     ),
 );
 
-$found = new Response("The user.", new ContentMap(new MediaType(MimeType::JSON, $userSchema)));
+$found = new Response(
+    "The user.",
+    new ContentMap(new MediaType(MimeType::JSON, $userSchema))
+);
+
 $notFound = new Response("There is no user with that ID.");
 
 $getUser = new Operation(
@@ -132,7 +136,10 @@ use Programster\Swagger\PathCollection;
 use Programster\Swagger\PathItem;
 
 $paths = new PathCollection(
-    new Path("/users/{id}", new PathItem(new OperationCollection($getUser))),
+    new Path(
+        "/users/{id}",
+        new PathItem(new OperationCollection($getUser))
+    ),
 );
 ```
 
@@ -196,7 +203,11 @@ use Programster\Swagger\HeaderCollection;
 use Programster\Swagger\MappedHeader;
 use Programster\Swagger\Schemas\SchemaInt;
 
-$rateLimit = new MappedHeader("X-Rate-Limit", Header::createFromSchema(new SchemaInt()));
+$rateLimit = new MappedHeader(
+    "X-Rate-Limit",
+    Header::createFromSchema(new SchemaInt())
+);
+
 $headers = new HeaderCollection($rateLimit, $rateLimit); // Throws DuplicateKeyException
 ```
 

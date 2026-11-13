@@ -65,12 +65,24 @@ use Programster\Swagger\Response;
 use Programster\Swagger\ResponseCode;
 use Programster\Swagger\ResponseCollection;
 
-$ok = new ResponseCollection(new MappedResponse(ResponseCode::OK, new Response("OK.")));
-$upload = new Operation(Method::POST, $ok, servers: new ServerCollection(new Server("https://uploads.example.com")));
+$ok = new ResponseCollection(
+    new MappedResponse(ResponseCode::OK, new Response("OK."))
+);
+
+$upload = new Operation(
+    Method::POST,
+    $ok,
+    servers: new ServerCollection(new Server("https://uploads.example.com"))
+);
 
 $document = new OpenApi(
     info: new Info("Files API", "1.0"),
-    paths: new PathCollection(new Path("/files", new PathItem(new OperationCollection($upload)))),
+    paths: new PathCollection(
+        new Path(
+            "/files",
+            new PathItem(new OperationCollection($upload))
+        )
+    ),
     servers: $servers,
 );
 ```

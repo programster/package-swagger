@@ -92,16 +92,32 @@ $user = new SchemaObject(properties: new PropertyMap(
 $getUser = new Operation(
     method: Method::GET,
     responses: new ResponseCollection(
-        new MappedResponse(ResponseCode::OK, new Response("The user.", new ContentMap(new MediaType(MimeType::JSON, $user)))),
-        new MappedResponse(ResponseCode::NOT_FOUND, new Response("There is no user with that ID.")),
+        new MappedResponse(
+            ResponseCode::OK,
+            new Response(
+                "The user.",
+                new ContentMap(new MediaType(MimeType::JSON, $user))
+            )
+        ),
+        new MappedResponse(
+            ResponseCode::NOT_FOUND,
+            new Response("There is no user with that ID.")
+        ),
     ),
     summary: "Get a user.",
-    parameters: new ParameterCollection(Parameter::createFromSchema("id", ParameterLocation::PATH, new SchemaString())),
+    parameters: new ParameterCollection(
+        Parameter::createFromSchema("id", ParameterLocation::PATH, new SchemaString())
+    ),
 );
 
 $document = new OpenApi(
     info: new Info("Users API", "1.0.0"),
-    paths: new PathCollection(new Path("/users/{id}", new PathItem(new OperationCollection($getUser)))),
+    paths: new PathCollection(
+        new Path(
+            "/users/{id}",
+            new PathItem(new OperationCollection($getUser))
+        )
+    ),
 );
 
 echo $document->toJson();

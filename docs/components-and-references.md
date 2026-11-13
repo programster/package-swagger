@@ -21,9 +21,12 @@ use Programster\Swagger\Schemas\SchemaMap;
 use Programster\Swagger\Schemas\SchemaObject;
 use Programster\Swagger\Schemas\SchemaString;
 
-$user = new NamedSchema("User", new SchemaObject(properties: new PropertyMap(
-    new Property("name", new SchemaString(), required: true),
-)));
+$user = new NamedSchema(
+    "User",
+    new SchemaObject(properties: new PropertyMap(
+        new Property("name", new SchemaString(), required: true),
+    ))
+);
 
 $components = new Components(schemas: new SchemaMap($user));
 ```
@@ -65,7 +68,10 @@ use Programster\Swagger\MimeType;
 use Programster\Swagger\Schemas\SchemaArray;
 
 $oneUser = new ContentMap(new MediaType(MimeType::JSON, $user->createReference()));
-$manyUsers = new ContentMap(new MediaType(MimeType::JSON, new SchemaArray($user->createReference())));
+
+$manyUsers = new ContentMap(
+    new MediaType(MimeType::JSON, new SchemaArray($user->createReference()))
+);
 ```
 
 The reference is output as `{"$ref": "#/components/schemas/User"}`.
@@ -90,6 +96,10 @@ else. A reference to a schema can't be used as a parameter, for instance.
 | `LinkReference` | `LinkInterface` | `#/components/links/...` |
 | `CallbackReference` | `CallbackInterface` | `#/components/callbacks/...` |
 | `PathItemReference` | `PathItemInterface` | another document only, as OpenAPI 3.0 has no path items in the components |
+
+All but `PathItemReference` extend `ComponentReference`, which is what gives them `createToComponent()`. Every
+reference extends `Reference`, which gives it `createToDocument()` and `createToDocumentPath()`, and
+`getReference()`, which returns where it points, e.g. `"#/components/schemas/User"`.
 
 A reference can also be created from just the component's name, e.g. for a component that is defined in another part
 of your code:

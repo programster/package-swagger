@@ -52,7 +52,12 @@ Where a parameter goes changes what it can have:
 - **Cookie** parameters are sent in the `Cookie` header.
 
 ```php
-$id = Parameter::createFromSchema("id", ParameterLocation::PATH, new SchemaString(), required: false); // Throws InvalidValueException
+$id = Parameter::createFromSchema(
+    "id",
+    ParameterLocation::PATH,
+    new SchemaString(),
+    required: false
+); // Throws InvalidValueException
 ```
 
 ## Styles
@@ -83,7 +88,12 @@ $ids = Parameter::createFromSchema(
     style: Style::PIPE_DELIMITED,
 );
 
-$wrong = Parameter::createFromSchema("ids", ParameterLocation::QUERY, new SchemaString(), style: Style::MATRIX); // Throws InvalidValueException
+$wrong = Parameter::createFromSchema(
+    "ids",
+    ParameterLocation::QUERY,
+    new SchemaString(),
+    style: Style::MATRIX
+); // Throws InvalidValueException
 ```
 
 ## Parameters whose value is JSON
@@ -101,9 +111,14 @@ use Programster\Swagger\Schemas\SchemaObject;
 $filter = Parameter::createFromContentMap(
     name: "filter",
     in: ParameterLocation::QUERY,
-    content: new ContentMap(new MediaType(MimeType::JSON, new SchemaObject(properties: new PropertyMap(
-        new Property("name", new SchemaString()),
-    )))),
+    content: new ContentMap(
+        new MediaType(
+            MimeType::JSON,
+            new SchemaObject(properties: new PropertyMap(
+                new Property("name", new SchemaString()),
+            ))
+        )
+    ),
 );
 ```
 
@@ -115,7 +130,12 @@ use Programster\Swagger\Examples\ExampleMap;
 use Programster\Swagger\Examples\NamedExample;
 use Programster\Swagger\Examples\ValueExample;
 
-$search = Parameter::createFromSchema("q", ParameterLocation::QUERY, new SchemaString(), example: new ValueExample("bob"));
+$search = Parameter::createFromSchema(
+    "q",
+    ParameterLocation::QUERY,
+    new SchemaString(),
+    example: new ValueExample("bob")
+);
 
 $sort = Parameter::createFromSchema(
     name: "sort",
@@ -142,7 +162,8 @@ $parameters = new ParameterCollection(
     Parameter::createFromSchema("id", ParameterLocation::QUERY, new SchemaString()),
 );
 
-$parameters->add(Parameter::createFromSchema("id", ParameterLocation::QUERY, new SchemaInt())); // Throws DuplicateKeyException
+$idInQuery = Parameter::createFromSchema("id", ParameterLocation::QUERY, new SchemaInt());
+$parameters->add($idInQuery); // Throws DuplicateKeyException
 ```
 
 ## Reusing a parameter

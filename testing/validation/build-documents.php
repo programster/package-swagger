@@ -124,20 +124,26 @@ $extensions = new ExtensionMap(new Extension("x-internal-id", "pets-api"));
 # Schemas
 $petType = new SchemaString(description: "The kind of pet.", enum: ["cat", "dog"]);
 
+$tags = new SchemaArray(
+    items: new SchemaString(pattern: "^[a-z]+$"),
+    maxItems: 10,
+    uniqueItems: true,
+    default: [],
+    xml: new Xml(name: "tags", wrapped: true),
+);
+
+$uuid = new SchemaString(format: StringFormat::UUID);
+$petName = new SchemaString(minLength: 1, maxLength: 50, example: "Tiddles");
+$metadata = new SchemaObject(additionalProperties: new SchemaAnyValue());
+
 $basePet = new NamedSchema("Pet", new SchemaObject(
     description: "What every pet has.",
     properties: new PropertyMap(
-        new Property("id", new SchemaString(format: StringFormat::UUID), required: true, access: Access::READ_ONLY),
+        new Property("id", $uuid, required: true, access: Access::READ_ONLY),
         new Property("petType", $petType, required: true),
-        new Property("name", new SchemaString(minLength: 1, maxLength: 50, example: "Tiddles"), required: true),
-        new Property("tags", new SchemaArray(
-            items: new SchemaString(pattern: "^[a-z]+$"),
-            maxItems: 10,
-            uniqueItems: true,
-            default: [],
-            xml: new Xml(name: "tags", wrapped: true),
-        )),
-        new Property("metadata", new SchemaObject(additionalProperties: new SchemaAnyValue())),
+        new Property("name", $petName, required: true),
+        new Property("tags", $tags),
+        new Property("metadata", $metadata),
     ),
     discriminator: new Discriminator("petType"),
     title: "Pet",
@@ -153,14 +159,16 @@ $catProperties = new SchemaObject(properties: new PropertyMap(
 
 $cat = new NamedSchema("Cat", new SchemaAllOf(new SchemaCollection($basePet->createReference(), $catProperties)));
 
+$weightKg = new SchemaNumber(
+    minimum: 0,
+    exclusiveMinimum: true,
+    multipleOf: 0.1,
+    format: NumberFormat::FLOAT,
+    example: 12.5,
+);
+
 $dogProperties = new SchemaObject(properties: new PropertyMap(
-    new Property("weightKg", new SchemaNumber(
-        minimum: 0,
-        exclusiveMinimum: true,
-        multipleOf: 0.1,
-        format: NumberFormat::FLOAT,
-        example: 12.5,
-    )),
+    new Property("weightKg", $weightKg),
     new Property("size", new SchemaString(nullable: true, enum: ["small", "large"])),
 ));
 
@@ -228,18 +236,20 @@ $petIdParameter = new NamedParameter(
     Parameter::createFromSchema("petId", ParameterLocation::PATH, $petId, description: "The pet's ID.")
 );
 
+$newPetForm = new MediaType(
+    mimeType: "multipart/form-data",
+    schema: new SchemaObject(properties: new PropertyMap(
+        new Property("name", new SchemaString(), required: true),
+        new Property("photo", new SchemaString(format: StringFormat::BINARY)),
+    )),
+    example: new ExampleMap(new NamedExample("photo", $photoExample->createReference())),
+    encoding: new EncodingMap(new Encoding("photo", MimeType::PNG, $headers)),
+);
+
 $newPetBody = new NamedRequestBody("NewPet", new RequestBody(
     content: new ContentMap(
         new MediaType(MimeType::JSON, $newPet->createReference()),
-        new MediaType(
-            mimeType: "multipart/form-data",
-            schema: new SchemaObject(properties: new PropertyMap(
-                new Property("name", new SchemaString(), required: true),
-                new Property("photo", new SchemaString(format: StringFormat::BINARY)),
-            )),
-            example: new ExampleMap(new NamedExample("photo", $photoExample->createReference())),
-            encoding: new EncodingMap(new Encoding("photo", MimeType::PNG, $headers)),
-        ),
+        $newPetForm,
     ),
     description: "The pet to add.",
     required: true,
@@ -315,14 +325,29 @@ $petContent = new ContentMap(new MediaType(
     example: new ExampleMap(new NamedExample("tiddles", $tiddles->createReference())),
 ));
 
+$pageOfPets = new Response(
+    description: "A page of pets.",
+    content: new ContentMap(new MediaType(MimeType::JSON, new SchemaArray($anyPet))),
+    headers: $headers,
+);
+
+$petTypeFilter = Parameter::createFromSchema(
+    name: "petType",
+    in: ParameterLocation::QUERY,
+    schema: new SchemaArray($petType),
+    description: "Only list pets of these kinds.",
+    style: Style::FORM,
+    explode: false,
+);
+
+$stringMap = new SchemaObject(additionalProperties: new SchemaString());
+$filter = Parameter::createFromSchema("filter", ParameterLocation::QUERY, $stringMap, style: Style::DEEP_OBJECT);
+$jsonStringMap = new ContentMap(new MediaType(MimeType::JSON, $stringMap));
+
 $listPets = new Operation(
     method: Method::GET,
     responses: new ResponseCollection(
-        new MappedResponse(ResponseCode::OK, new Response(
-            description: "A page of pets.",
-            content: new ContentMap(new MediaType(MimeType::JSON, new SchemaArray($anyPet))),
-            headers: $headers,
-        )),
+        new MappedResponse(ResponseCode::OK, $pageOfPets),
         new MappedResponse(ResponseCode::ANY_CLIENT_ERROR, new Response("The request was wrong.", $errorContent)),
         new MappedResponse(499, new Response("The client closed the connection.")),
         new MappedResponse(ResponseCode::DEFAULT, new Response("Something went wrong.", $errorContent)),
@@ -330,26 +355,10 @@ $listPets = new Operation(
     summary: "List the pets.",
     description: "Lists the pets, a page at a time.",
     parameters: new ParameterCollection(
-        Parameter::createFromSchema(
-            name: "petType",
-            in: ParameterLocation::QUERY,
-            schema: new SchemaArray($petType),
-            description: "Only list pets of these kinds.",
-            style: Style::FORM,
-            explode: false,
-        ),
+        $petTypeFilter,
         Parameter::createFromSchema("name", ParameterLocation::QUERY, $name, allowEmptyValue: true),
-        Parameter::createFromSchema(
-            name: "filter",
-            in: ParameterLocation::QUERY,
-            schema: new SchemaObject(additionalProperties: new SchemaString()),
-            style: Style::DEEP_OBJECT,
-        ),
-        Parameter::createFromContentMap(
-            "where",
-            ParameterLocation::QUERY,
-            new ContentMap(new MediaType(MimeType::JSON, new SchemaObject(additionalProperties: new SchemaString())))
-        ),
+        $filter,
+        Parameter::createFromContentMap("where", ParameterLocation::QUERY, $jsonStringMap),
         Parameter::createFromSchema("X-Request-Id", ParameterLocation::HEADER, $petId),
         Parameter::createFromSchema("session", ParameterLocation::COOKIE, new SchemaString(), deprecated: true),
     ),
@@ -359,14 +368,12 @@ $listPets = new Operation(
     extensions: $extensions,
 );
 
+$petAdded = new Response("The pet was added.", $petContent, links: new LinkMap($getPetLink));
+
 $addPet = new Operation(
     method: Method::POST,
     responses: new ResponseCollection(
-        new MappedResponse(ResponseCode::CREATED, new Response(
-            description: "The pet was added.",
-            content: $petContent,
-            links: new LinkMap($getPetLink),
-        )),
+        new MappedResponse(ResponseCode::CREATED, $petAdded),
         new MappedResponse(ResponseCode::BAD_REQUEST, new Response("The pet is invalid.", $errorContent)),
     ),
     summary: "Add a pet.",
@@ -418,12 +425,16 @@ $healthItem = new PathItem(new OperationCollection(new Operation(
     security: new SecurityRequirementCollection(),
 )));
 
+$petsItem = new PathItem(new OperationCollection($listPets, $addPet), summary: "The pets.");
+
+$petItem = new PathItem(
+    operations: new OperationCollection($getPet, $deletePet),
+    parameters: new ParameterCollection($petIdParameter->createReference()),
+);
+
 $paths = new PathCollection(
-    new Path("/pets", new PathItem(new OperationCollection($listPets, $addPet), summary: "The pets.")),
-    new Path("/pets/{petId}", new PathItem(
-        operations: new OperationCollection($getPet, $deletePet),
-        parameters: new ParameterCollection($petIdParameter->createReference()),
-    )),
+    new Path("/pets", $petsItem),
+    new Path("/pets/{petId}", $petItem),
     new Path("/health", PathItemReference::createToDocument("health.json")),
 );
 

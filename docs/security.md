@@ -204,7 +204,10 @@ use Programster\Swagger\Response;
 use Programster\Swagger\ResponseCode;
 use Programster\Swagger\ResponseCollection;
 
-$ok = new ResponseCollection(new MappedResponse(ResponseCode::OK, new Response("OK.")));
+$ok = new ResponseCollection(
+    new MappedResponse(ResponseCode::OK, new Response("OK."))
+);
+
 
 $listUsers = new Operation(Method::GET, $ok);
 $createUser = new Operation(Method::POST, $ok, security: $needsBoth);
@@ -215,8 +218,14 @@ $health = new Operation(Method::GET, $ok, security: new SecurityRequirementColle
 $document = new OpenApi(
     info: new Info("Users API", "1.0"),
     paths: new PathCollection(
-        new Path("/users", new PathItem(new OperationCollection($listUsers, $createUser))),
-        new Path("/health", new PathItem(new OperationCollection($health))),
+        new Path(
+            "/users",
+            new PathItem(new OperationCollection($listUsers, $createUser))
+        ),
+        new Path(
+            "/health",
+            new PathItem(new OperationCollection($health))
+        ),
     ),
     components: $components,
     security: $needsEither,
@@ -244,6 +253,11 @@ $typo = $namedOauth->createSecurityRequirement("user:read"); // Throws InvalidVa
 ```php
 $noSchemes = new OpenApi(
     info: new Info("Users API", "1.0"),
-    paths: new PathCollection(new Path("/users", new PathItem(new OperationCollection($createUser)))),
+    paths: new PathCollection(
+        new Path(
+            "/users",
+            new PathItem(new OperationCollection($createUser))
+        )
+    ),
 ); // Throws InvalidDocumentException
 ```

@@ -203,8 +203,18 @@ on an object's properties:
 use Programster\Swagger\Schemas\Access;
 
 $account = new SchemaObject(properties: new PropertyMap(
-    new Property("id", new SchemaString(), required: true, access: Access::READ_ONLY),
-    new Property("password", new SchemaString(format: StringFormat::PASSWORD), required: true, access: Access::WRITE_ONLY),
+    new Property(
+        "id",
+        new SchemaString(),
+        required: true,
+        access: Access::READ_ONLY
+    ),
+    new Property(
+        "password",
+        new SchemaString(format: StringFormat::PASSWORD),
+        required: true,
+        access: Access::WRITE_ONLY
+    ),
 ));
 ```
 
@@ -225,7 +235,10 @@ $scores = new SchemaObject(additionalProperties: new SchemaInt(minimum: 0));
 
 // An object that can only have the properties it lists.
 $point = new SchemaObject(
-    properties: new PropertyMap(new Property("x", new SchemaNumber()), new Property("y", new SchemaNumber())),
+    properties: new PropertyMap(
+        new Property("x", new SchemaNumber()),
+        new Property("y", new SchemaNumber()),
+    ),
     additionalProperties: false,
 );
 ```
@@ -270,16 +283,25 @@ $namedUser = new NamedSchema("User", $user);
 // allOf: an admin is a user, with some extra properties.
 $admin = new SchemaAllOf(new SchemaCollection(
     $namedUser->createReference(),
-    new SchemaObject(properties: new PropertyMap(new Property("permissions", $tags, required: true))),
+    new SchemaObject(properties: new PropertyMap(
+        new Property("permissions", $tags, required: true),
+    )),
 ));
 
 // oneOf: an ID is either a number or a UUID, but not both.
-$id = new SchemaOneOf(new SchemaCollection(new SchemaInt(minimum: 1), new SchemaString(format: StringFormat::UUID)));
+$id = new SchemaOneOf(new SchemaCollection(
+    new SchemaInt(minimum: 1),
+    new SchemaString(format: StringFormat::UUID),
+));
 
 // anyOf: a contact has an email address, a phone number, or both.
 $contact = new SchemaAnyOf(new SchemaCollection(
-    new SchemaObject(properties: new PropertyMap(new Property("email", $email, required: true))),
-    new SchemaObject(properties: new PropertyMap(new Property("phone", new SchemaString(), required: true))),
+    new SchemaObject(properties: new PropertyMap(
+        new Property("email", $email, required: true),
+    )),
+    new SchemaObject(properties: new PropertyMap(
+        new Property("phone", new SchemaString(), required: true),
+    )),
 ));
 
 // not: any string except "admin".
@@ -291,7 +313,8 @@ used, as OpenAPI ignores anything beside a reference. `SchemaOneOf` and `SchemaA
 they would be the same as that schema:
 
 ```php
-$pointless = new SchemaOneOf(new SchemaCollection(new SchemaString())); // Throws InvalidValueException
+$justOne = new SchemaCollection(new SchemaString());
+$pointless = new SchemaOneOf($justOne); // Throws InvalidValueException
 ```
 
 ## Choosing a schema with a discriminator
@@ -304,15 +327,21 @@ use Programster\Swagger\Schemas\Discriminator;
 use Programster\Swagger\Schemas\DiscriminatorMapping;
 use Programster\Swagger\Schemas\DiscriminatorMappingMap;
 
-$cat = new NamedSchema("Cat", new SchemaObject(properties: new PropertyMap(
-    new Property("petType", new SchemaString(), required: true),
-    new Property("livesLeft", new SchemaInt()),
-)));
+$cat = new NamedSchema(
+    "Cat",
+    new SchemaObject(properties: new PropertyMap(
+        new Property("petType", new SchemaString(), required: true),
+        new Property("livesLeft", new SchemaInt()),
+    ))
+);
 
-$dog = new NamedSchema("Dog", new SchemaObject(properties: new PropertyMap(
-    new Property("petType", new SchemaString(), required: true),
-    new Property("goodBoy", new SchemaBool()),
-)));
+$dog = new NamedSchema(
+    "Dog",
+    new SchemaObject(properties: new PropertyMap(
+        new Property("petType", new SchemaString(), required: true),
+        new Property("goodBoy", new SchemaBool()),
+    ))
+);
 
 $pet = new SchemaOneOf(
     schemas: new SchemaCollection($cat->createReference(), $dog->createReference()),
@@ -344,9 +373,11 @@ attribute, or (for an array) wrapped in an element:
 ```php
 use Programster\Swagger\Schemas\Xml;
 
+$idAttribute = new SchemaInt(xml: new Xml(attribute: true));
+
 $book = new SchemaObject(
     properties: new PropertyMap(
-        new Property("id", new SchemaInt(xml: new Xml(attribute: true))),
+        new Property("id", $idAttribute),
         new Property("title", new SchemaString()),
     ),
     xml: new Xml(name: "book", namespace: "https://example.com/schema", prefix: "ex"),

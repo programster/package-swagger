@@ -21,7 +21,9 @@ use Programster\Swagger\Schemas\PropertyMap;
 use Programster\Swagger\Schemas\SchemaObject;
 use Programster\Swagger\Schemas\SchemaString;
 
-$user = new SchemaObject(properties: new PropertyMap(new Property("name", new SchemaString(), required: true)));
+$user = new SchemaObject(properties: new PropertyMap(
+    new Property("name", new SchemaString(), required: true),
+));
 
 $content = new ContentMap(
     new MediaType(MimeType::JSON, $user),
@@ -88,14 +90,21 @@ use Programster\Swagger\Examples\ExternalValueExample;
 use Programster\Swagger\Examples\NamedExample;
 
 $examples = new ExampleMap(
-    new NamedExample("short", new ValueExample(['name' => "Bo"]), "A short name."),
+    new NamedExample(
+        name: "short",
+        example: new ValueExample(['name' => "Bo"]),
+        summary: "A short name.",
+    ),
     new NamedExample(
         name: "long",
         example: new ValueExample(['name' => "Bartholomew"]),
         summary: "A long name.",
         description: "Names can be up to 255 characters.",
     ),
-    new NamedExample("fromFile", new ExternalValueExample("https://example.com/examples/user.json")),
+    new NamedExample(
+        name: "fromFile",
+        example: new ExternalValueExample("https://example.com/examples/user.json"),
+    ),
 );
 
 $withExamples = new MediaType(MimeType::JSON, $user, $examples);
@@ -104,6 +113,9 @@ $withExamples = new MediaType(MimeType::JSON, $user, $examples);
 An `ExternalValueExample` is an example at a URL, for one that is too big to put in the document, or can't be
 written as JSON (e.g. an image). OpenAPI only allows these in a map of named examples, so a media type, parameter or
 header can't be given one on its own.
+
+An example that is used in several places can be defined once in the components, and referenced from each. See
+[Referencing an example](components-and-references.md#referencing-an-example).
 
 ## Encoding multipart and form bodies
 A request body that is `multipart/form-data` or `application/x-www-form-urlencoded` (e.g. a form with a file upload)
@@ -119,11 +131,15 @@ $profile = new SchemaObject(properties: new PropertyMap(
     new Property("photo", new SchemaString(format: StringFormat::BINARY)),
 ));
 
-$upload = new RequestBody(new ContentMap(new MediaType(
-    mimeType: MimeType::MULTIPART_FORM_DATA,
-    schema: $profile,
-    encoding: new EncodingMap(new Encoding("photo", contentType: MimeType::PNG)),
-)));
+$upload = new RequestBody(
+    new ContentMap(
+        new MediaType(
+            mimeType: MimeType::MULTIPART_FORM_DATA,
+            schema: $profile,
+            encoding: new EncodingMap(new Encoding("photo", contentType: MimeType::PNG)),
+        )
+    )
+);
 ```
 
 | Parameter | Type | Description |
@@ -138,5 +154,6 @@ $upload = new RequestBody(new ContentMap(new MediaType(
 An encoding can only be given for multipart or form content, and only for a property that the schema has:
 
 ```php
-$wrong = new MediaType(MimeType::JSON, $profile, encoding: new EncodingMap(new Encoding("photo"))); // Throws InvalidValueException
+$photoEncoding = new EncodingMap(new Encoding("photo"));
+$wrong = new MediaType(MimeType::JSON, $profile, encoding: $photoEncoding); // Throws InvalidValueException
 ```

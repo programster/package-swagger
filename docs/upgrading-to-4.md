@@ -55,8 +55,9 @@ kind of thing can, and always points at the right part of the components:
 | `new Reference("#/components/parameters/id")` | `ParameterReference::createToComponent("id")` |
 
 The others are `ResponseReference`, `RequestBodyReference`, `HeaderReference`, `ExampleReference`, `LinkReference`,
-`CallbackReference` and `PathItemReference`, which are all in the `Programster\Swagger\References` namespace. Every named component class (e.g. `NamedSchema`, `NamedParameter`)
-has a `createReference()` method, so its name doesn't need to be typed again.
+`CallbackReference` and `PathItemReference`, which are all in the `Programster\Swagger\References` namespace. Every
+named component class (e.g. `NamedSchema`, `NamedParameter`) has a `createReference()` method, so its name doesn't need
+to be typed again.
 
 The unions with `Reference` are replaced by interfaces, which the thing and its reference both implement:
 
@@ -90,8 +91,17 @@ use Programster\Swagger\Response;
 use Programster\Swagger\ResponseCode;
 use Programster\Swagger\ResponseCollection;
 
-$getUsers = new Operation(Method::GET, new ResponseCollection(new MappedResponse(ResponseCode::OK, new Response("OK."))));
-$path = new Path("/users", new PathItem(new OperationCollection($getUsers), summary: "Users."));
+$getUsers = new Operation(
+    Method::GET,
+    new ResponseCollection(
+        new MappedResponse(ResponseCode::OK, new Response("OK."))
+    )
+);
+
+$path = new Path(
+    "/users",
+    new PathItem(new OperationCollection($getUsers), summary: "Users.")
+);
 ```
 
 - `Path`'s `ref` parameter is gone.
@@ -124,7 +134,13 @@ use Programster\Swagger\Schemas\SchemaString;
 use Programster\Swagger\Style;
 
 $id = Parameter::createFromSchema("id", ParameterLocation::PATH, new SchemaString());
-$sort = Parameter::createFromSchema("sort", ParameterLocation::QUERY, new SchemaString(), style: Style::FORM, example: new ValueExample("name"));
+$sort = Parameter::createFromSchema(
+    "sort",
+    ParameterLocation::QUERY,
+    new SchemaString(),
+    style: Style::FORM,
+    example: new ValueExample("name")
+);
 ```
 
 - `required` defaults to true for path parameters (which must be required) and false for the rest.
@@ -148,7 +164,12 @@ use Programster\Swagger\HeaderCollection;
 use Programster\Swagger\MappedHeader;
 use Programster\Swagger\Schemas\SchemaInt;
 
-$headers = new HeaderCollection(new MappedHeader("X-Rate-Limit", Header::createFromSchema(new SchemaInt(), true)));
+$headers = new HeaderCollection(
+    new MappedHeader(
+        "X-Rate-Limit",
+        Header::createFromSchema(new SchemaInt(), true)
+    )
+);
 ```
 
 - `Header::createFromSchema()` no longer has `allowEmptyValue` or `allowReserved`, as they can't be used for headers.
@@ -200,7 +221,12 @@ use Programster\Swagger\NamedLink;
 use Programster\Swagger\Response;
 
 $link = Link::createFromOperationId("getGroup", ['id' => '$response.body#/groupId']);
-$response = new Response("A user.", content: $content, headers: $headers, links: new LinkMap(new NamedLink("group", $link)));
+$response = new Response(
+    "A user.",
+    content: $content,
+    headers: $headers,
+    links: new LinkMap(new NamedLink("group", $link))
+);
 ```
 
 - `Response`'s parameters are named `content`, `headers` and `links`, after the fields they fill in, and the content
@@ -263,7 +289,10 @@ use Programster\Swagger\Server;
 use Programster\Swagger\ServerVariable;
 use Programster\Swagger\ServerVariableMap;
 
-$server = new Server("https://api.example.com:{port}", variables: new ServerVariableMap(new ServerVariable("port", "443")));
+$server = new Server(
+    "https://api.example.com:{port}",
+    variables: new ServerVariableMap(new ServerVariable("port", "443"))
+);
 ```
 
 - Every variable in the URL must have a `ServerVariable`, and the other way round, and a variable's default must be
@@ -302,8 +331,16 @@ use Programster\Swagger\Security\OAuth2;
 use Programster\Swagger\Security\RequiredScheme;
 use Programster\Swagger\Security\SecurityRequirement;
 
-$flow = new ClientCredentialsFlow("https://auth.example.com/token", new ScopeMap(new Scope("read", "Read access.")));
-$oauth = new NamedSecurityScheme("oauth", new OAuth2(new OauthFlows(clientCredentials: $flow)));
+$flow = new ClientCredentialsFlow(
+    "https://auth.example.com/token",
+    new ScopeMap(new Scope("read", "Read access."))
+);
+
+$oauth = new NamedSecurityScheme(
+    "oauth",
+    new OAuth2(new OauthFlows(clientCredentials: $flow))
+);
+
 $apiKey = new NamedSecurityScheme("apiKey", new ApiKey("X-API-Key", ApiKeyLocation::HEADER));
 
 $requirement = $oauth->createSecurityRequirement("read");
