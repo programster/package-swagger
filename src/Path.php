@@ -1,99 +1,109 @@
 <?php
 
-/*
- * https://swagger.io/specification/#path-item-object
- */
-
 namespace Programster\Swagger;
 
+use Programster\Swagger\Exceptions\InvalidDocumentException;
+use Programster\Swagger\Exceptions\InvalidValueException;
 
-class Path implements \JsonSerializable
+
+/**
+ * A path of the API, e.g. "/users/{id}", and the operations on it.
+ * https://swagger.io/specification/v3/#paths-object
+ */
+final readonly class Path
 {
-    private readonly string $m_relativePath;
-    private readonly ?OperationCollection $m_operations;
-    private readonly ?string $m_ref;
-    private readonly ?string $m_summary;
-    private readonly ?string $m_description;
-    private readonly ?ServerCollection $m_servers;
-    private readonly ?ParameterCollection $m_parameters;
+    private string $m_relativePath;
+    private PathItemInterface $m_item;
 
 
     /**
-     * Define a path.
+     * Create a path. Every variable in the path (e.g. the "id" in "/users/{id}") must have a parameter of the same
+     * name in the path, for every operation, either in the item's parameters or the operation's own, and there can't
+     * be a path parameter that isn't in the path. This can't be checked when the item is a reference.
      *
-     * @param string $relativePath - The URL path for this path. E.g. "/users"
+     * @param string $relativePath - the path, relative to the server's URL, e.g. "/users/{id}". It must start with a
+     * "/".
      *
-     * @param OperationCollection|null $operations - The operations under this path. E.g. GET, POST, PUT, etc.
+     * @param PathItemInterface $item - the operations on the path, or a reference to them in another document.
      *
-     * @param string|null $ref - Allows for an external definition of this path item. The referenced structure MUST be
-     * in the format of a Path Item Object. In case a Path Item Object field appears both in the defined object and the
-     * referenced object, the behavior is undefined.
-     *
-     * @param string|null $summary - An optional, string summary, intended to apply to all operations in this path.
-     *
-     * @param string|null $description - An optional, string description, intended to apply to all operations in this
-     * path. CommonMark syntax MAY be used for rich text representation.
-     *
-     * @param ServerCollection|null $servers - An alternative server array to service all operations in this path.
-     *
-     * @param ParameterCollection|null $parameters - A list of parameters that are applicable for all the operations
-     * described under this path. These parameters can be overridden at the operation level, but cannot be removed
-     * there. The list MUST NOT include duplicated parameters. A unique parameter is defined by a combination of a name
-     * and location. The list can use the Reference Object to link to parameters that are defined at the OpenAPI
-     * Object's components/parameters.
+     * @throws InvalidValueException - if the path doesn't start with a "/".
+     * @throws InvalidDocumentException - if the path's variables don't match the operations' path parameters.
      */
-    public function __construct(
-        string $relativePath,
-        ?OperationCollection $operations,
-        ?string $ref = null,
-        ?string $summary = null,
-        ?string $description = null,
-        ?ServerCollection $servers = null,
-        ?ParameterCollection $parameters = null,
-    )
+    public function __construct(string $relativePath, PathItemInterface $item)
     {
-        $this->m_relativePath = $relativePath;
-        $this->m_operations = $operations;
-        $this->m_ref = $ref;
-        $this->m_summary = $summary;
-        $this->m_description = $description;
-        $this->m_servers = $servers;
-        $this->m_parameters = $parameters;
-    }
-
-
-    public function toArray() : array
-    {
-        $optionalFields = [
-            '$ref' => $this->m_ref,
-            'summary' => $this->m_summary,
-            'description' => $this->m_description,
-            'servers' => $this->m_servers,
-            'parameters' => $this->m_parameters,
-        ];
-
-        $isProvided = function (mixed $value) : bool { return $value !== null; };
-        $arrayForm = array_filter($optionalFields, $isProvided);
-
-        if ($this->m_operations !== null)
+        if (!str_starts_with($relativePath, "/"))
         {
-            foreach ($this->m_operations as $operation)
-            {
-                /* @var $operation Operation */
-                $arrayForm[$operation->getMethod()->value] = $operation;
-            }
+            throw new InvalidValueException("A path must start with a \"/\", but \"{$relativePath}\" doesn't.");
         }
 
-        return $arrayForm;
+        if ($item instanceof PathItem)
+        {
+            self::assertPathParametersMatch($relativePath, $item);
+        }
+
+        $this->m_relativePath = $relativePath;
+        $this->m_item = $item;
     }
 
 
-    public function jsonSerialize(): mixed
+    /**
+     * Check that every variable in the path has a path parameter, for every operation, and that every path parameter
+     * is in the path. A reference could be to a path parameter, so a variable without a parameter is only an error
+     * when there are no references.
+     *
+     * @param string $relativePath - the path.
+     *
+     * @param PathItem $item - the operations on the path.
+     *
+     * @return void
+     *
+     * @throws InvalidDocumentException - if they don't match.
+     */
+    private static function assertPathParametersMatch(string $relativePath, PathItem $item) : void
     {
-        return $this->toArray();
+        preg_match_all('/\{([^}]*)\}/', $relativePath, $matches);
+        $variables = array_unique($matches[1]);
+        $sharedParameters = $item->getParameters();
+
+        foreach ($item->getOperations() as $operation)
+        {
+            /** @var Operation $operation */
+            $operationName = strtoupper($operation->getMethod()->value) . " {$relativePath}";
+            $ownParameters = $operation->getParameters();
+
+            $parameterNames = array_unique(array_merge(
+                $sharedParameters->getPathParameterNames(),
+                $ownParameters->getPathParameterNames()
+            ));
+
+            $mightHaveMore = $sharedParameters->hasReferences() || $ownParameters->hasReferences();
+
+            foreach ($variables as $variable)
+            {
+                if (!$mightHaveMore && !in_array($variable, $parameterNames, true))
+                {
+                    $message = "{$operationName} has no path parameter named \"{$variable}\". Create one with "
+                        . "ParameterLocation::PATH, for the path or the operation.";
+
+                    throw new InvalidDocumentException($message);
+                }
+            }
+
+            foreach ($parameterNames as $parameterName)
+            {
+                if (!in_array($parameterName, $variables, true))
+                {
+                    $message = "{$operationName} has a path parameter named \"{$parameterName}\", but the path has no "
+                        . "{{$parameterName}} in it.";
+
+                    throw new InvalidDocumentException($message);
+                }
+            }
+        }
     }
 
 
     # Accessors
     public function getRelativePath() : string { return $this->m_relativePath; }
+    public function getItem() : PathItemInterface { return $this->m_item; }
 }

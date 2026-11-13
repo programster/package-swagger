@@ -1,104 +1,139 @@
 <?php
 
 /*
- * Smoke tests for Header and HeaderMap. These are run by testing/main.php, which provides $smoke.
+ * Smoke tests for Header, MappedHeader, HeaderCollection, NamedHeader and HeaderMap. These are run by
+ * testing/main.php, which provides $smoke.
  */
 
 use Programster\Swagger\ContentMap;
 use Programster\Swagger\Examples\ExampleMap;
 use Programster\Swagger\Examples\NamedExample;
 use Programster\Swagger\Examples\ValueExample;
+use Programster\Swagger\Exceptions\DuplicateKeyException;
+use Programster\Swagger\Exceptions\InvalidValueException;
+use Programster\Swagger\Extensions\Extension;
+use Programster\Swagger\Extensions\ExtensionMap;
 use Programster\Swagger\Header;
+use Programster\Swagger\HeaderCollection;
 use Programster\Swagger\HeaderMap;
+use Programster\Swagger\MappedHeader;
 use Programster\Swagger\MediaType;
 use Programster\Swagger\MimeType;
-use Programster\Swagger\Reference;
+use Programster\Swagger\NamedHeader;
+use Programster\Swagger\References\HeaderReference;
 use Programster\Swagger\Schemas\SchemaString;
 use Programster\Swagger\Testing\SmokeTest;
 
 /** @var SmokeTest $smoke */
 
 $testHeaderFromSchema = function () : void {
-    $header = Header::createFromSchema("Authorization", new SchemaString());
-    assert($header->getName() === "Authorization");
-
-    // The name isn't output, as it is the header's key in a HeaderMap.
-    SmokeTest::assertJson('{"schema":{"type":"string"}}', $header);
-    SmokeTest::assertJson('{"schema":{"$ref":"#/a"}}', Header::createFromSchema("A", new Reference("#/a")));
+    SmokeTest::assertJson('{"schema":{"type":"string"}}', Header::createFromSchema(new SchemaString()));
 
     $fullHeader = Header::createFromSchema(
-        name: "Authorization",
         schema: new SchemaString(),
         required: true,
-        description: "The auth header.",
-        deprecated: false,
-        allowEmptyValue: false,
-        explode: true,
-        allowReserved: false,
-        example: new ValueExample("Bearer abc"),
+        description: "Requests left.",
+        deprecated: true,
+        explode: false,
+        example: new ValueExample("100"),
+        extensions: new ExtensionMap(new Extension("x-internal", false)),
     );
 
     $expected = <<<'JSON'
         {
+            "description": "Requests left.",
             "required": true,
-            "description": "The auth header.",
-            "deprecated": false,
-            "allowEmptyValue": false,
+            "deprecated": true,
+            "explode": false,
             "schema": {"type": "string"},
-            "explode": true,
-            "allowReserved": false,
-            "example": "Bearer abc"
+            "example": "100",
+            "x-internal": false
         }
         JSON;
 
     SmokeTest::assertJson($expected, $fullHeader);
-    SmokeTest::assertJson($expected, $fullHeader->toArray());
 
-    // This used to crash, as the map was converted to an array before being passed on.
-    $examples = new ExampleMap(new NamedExample("bearer", new ValueExample("Bearer abc")));
-    $withExamples = Header::createFromSchema("Authorization", new SchemaString(), example: $examples);
-    SmokeTest::assertJson('{"schema":{"type":"string"},"examples":{"bearer":{"value":"Bearer abc"}}}', $withExamples);
+    $examples = new ExampleMap(new NamedExample("plenty", new ValueExample("100")));
+    $withExamples = Header::createFromSchema(new SchemaString(), example: $examples);
+    SmokeTest::assertJson('{"schema":{"type":"string"},"examples":{"plenty":{"value":"100"}}}', $withExamples);
 };
 
 $smoke->run("Header::createFromSchema()", $testHeaderFromSchema);
 
 $testHeaderFromContentMap = function () : void {
-    $content = new ContentMap(MimeType::JSON, new MediaType(new SchemaString()));
-    $header = Header::createFromContentMap("X-Data", $content, true, "Some data.", true, false);
-    assert($header->getName() === "X-Data");
+    $content = new ContentMap(new MediaType(MimeType::JSON, new SchemaString()));
+    $header = Header::createFromContentMap($content, true, "Some data.", true);
 
-    $expected = <<<'JSON'
-        {
-            "required": true,
-            "description": "Some data.",
-            "deprecated": true,
-            "allowEmptyValue": false,
-            "content": {"application/json": {"schema": {"type": "string"}}}
-        }
-        JSON;
+    $expected = '{"description":"Some data.","required":true,"deprecated":true,'
+        . '"content":{"application/json":{"schema":{"type":"string"}}}}';
 
     SmokeTest::assertJson($expected, $header);
+
+    $createWithTwoMediaTypes = function () : void {
+        $content = new ContentMap(new MediaType(MimeType::JSON), new MediaType(MimeType::XML));
+        Header::createFromContentMap($content);
+    };
+
+    SmokeTest::expectException(
+        InvalidValueException::class,
+        $createWithTwoMediaTypes,
+        "must have exactly one media type"
+    );
 };
 
 $smoke->run("Header::createFromContentMap()", $testHeaderFromContentMap);
 
-$testHeaderMap = function () : void {
-    $map = new HeaderMap(
-        Header::createFromSchema("X-A", new SchemaString()),
-        Header::createFromSchema("X-B", new SchemaString(), required: true),
+$testHeaderCollection = function () : void {
+    $mapped = new MappedHeader("X-A", Header::createFromSchema(new SchemaString()));
+    assert($mapped->getName() === "X-A");
+
+    $collection = new HeaderCollection(
+        $mapped,
+        new MappedHeader("X-B", Header::createFromSchema(new SchemaString(), required: true)),
+        new MappedHeader("X-Rate-Limit", HeaderReference::createToComponent("RateLimit")),
     );
 
-    $expected = '{"X-A":{"schema":{"type":"string"}},"X-B":{"required":true,"schema":{"type":"string"}}}';
-    SmokeTest::assertJson($expected, $map);
-    assert(array_keys($map->toArray()) === ["X-A", "X-B"]);
-    assert($map->toArray()["X-A"] instanceof Header);
+    $expected = '{"X-A":{"schema":{"type":"string"}},"X-B":{"required":true,"schema":{"type":"string"}},'
+        . '"X-Rate-Limit":{"$ref":"#/components/headers/RateLimit"}}';
 
-    $createWithDuplicateNames = function () : void {
-        $header = Header::createFromSchema("X-A", new SchemaString());
-        new HeaderMap($header, Header::createFromSchema("X-A", new SchemaString()));
+    SmokeTest::assertJson($expected, $collection);
+    assert($collection->getKeys() === ["X-A", "X-B", "X-Rate-Limit"]);
+
+    $createWithDuplicateNames = function () use ($mapped) : void {
+        new HeaderCollection($mapped, $mapped);
     };
 
-    SmokeTest::expectException(\Exception::class, $createWithDuplicateNames, "Duplicate header: X-A");
+    SmokeTest::expectException(DuplicateKeyException::class, $createWithDuplicateNames, 'a header named "X-A"');
+
+    $createWithBadName = function () : void {
+        new MappedHeader("X Rate Limit", Header::createFromSchema(new SchemaString()));
+    };
+
+    SmokeTest::expectException(InvalidValueException::class, $createWithBadName, "isn't a valid HTTP header name");
 };
 
-$smoke->run("HeaderMap", $testHeaderMap);
+$smoke->run("MappedHeader and HeaderCollection", $testHeaderCollection);
+
+$testHeaderMap = function () : void {
+    $header = Header::createFromSchema(new SchemaString());
+    $named = new NamedHeader("RateLimit", $header);
+    assert($named->getName() === "RateLimit" && $named->getHeader() === $header);
+    SmokeTest::assertJson('{"$ref":"#/components/headers/RateLimit"}', $named->createReference());
+
+    $map = new HeaderMap($named, new NamedHeader("Other", HeaderReference::createToDocument("headers.json")));
+    SmokeTest::assertJson('{"RateLimit":{"schema":{"type":"string"}},"Other":{"$ref":"headers.json"}}', $map);
+
+    $createWithDuplicateNames = function () use ($named) : void {
+        new HeaderMap($named, $named);
+    };
+
+    SmokeTest::expectException(DuplicateKeyException::class, $createWithDuplicateNames, 'a header named "RateLimit"');
+
+    $createWithBadName = function () use ($header) : void {
+        new NamedHeader("Rate Limit", $header);
+    };
+
+    SmokeTest::expectException(InvalidValueException::class, $createWithBadName, "can only contain letters, numbers");
+};
+
+$smoke->run("NamedHeader and HeaderMap", $testHeaderMap);

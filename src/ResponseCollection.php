@@ -1,47 +1,55 @@
 <?php
 
-/*
- * https://swagger.io/specification/#responses-object
- */
-
 namespace Programster\Swagger;
 
+use Programster\Swagger\Exceptions\DuplicateKeyException;
+use Programster\Swagger\Internal\AbstractKeyedCollection;
 
-class ResponseCollection implements \JsonSerializable
+
+/**
+ * The responses that an operation can give, each under its response code. There must be at least one.
+ */
+final class ResponseCollection extends AbstractKeyedCollection
 {
-    private readonly array $m_arrayForm;
-
-
     /**
-     * @param MappedResponse ...$mappedResponses - the responses, each of which must have a unique response code.
-     * @throws \Exception - if two of the responses have the same response code.
+     * @param MappedResponse $first - the first response. There must be at least one.
+     * @param MappedResponse ...$others - any others.
+     * @throws DuplicateKeyException - if two of them have the same response code.
      */
-    public function __construct(MappedResponse ...$mappedResponses)
+    public function __construct(MappedResponse $first, MappedResponse ...$others)
     {
-        $arrayForm = [];
-
-        foreach ($mappedResponses as $mappedResponse)
-        {
-            if (isset($arrayForm[$mappedResponse->getResponseCode()->value]))
-            {
-                throw new \Exception("Overlapping response code: " . $mappedResponse->getResponseCode()->value);
-            }
-
-            $arrayForm[$mappedResponse->getResponseCode()->value] = $mappedResponse->getResponse();
-        }
-
-        $this->m_arrayForm = $arrayForm;
+        parent::__construct([$first, ...$others]);
     }
 
 
-    public function toArray() : array
+    public function getType() : string
     {
-        return $this->m_arrayForm;
+        return MappedResponse::class;
     }
 
 
-    public function jsonSerialize(): mixed
+    public function jsonSerialize() : \stdClass
     {
-        return $this->toArray();
+        return $this->toJsonObject();
+    }
+
+
+    protected function getKeyOf(mixed $item) : string
+    {
+        /** @var MappedResponse $item */
+        return $item->getCode();
+    }
+
+
+    protected function describeKey(string $key) : string
+    {
+        return "a response for the {$key} code";
+    }
+
+
+    protected function getJsonValueOf(mixed $item) : mixed
+    {
+        /** @var MappedResponse $item */
+        return $item->getResponse();
     }
 }

@@ -2,48 +2,54 @@
 
 namespace Programster\Swagger\Security;
 
+use Programster\Swagger\Exceptions\DuplicateKeyException;
+use Programster\Swagger\Internal\AbstractKeyedCollection;
 
-class SecuritySchemeMap implements \JsonSerializable
+
+/**
+ * The security schemes in the components, each under its name. Security requirements can only use the schemes
+ * that are in here.
+ */
+final class SecuritySchemeMap extends AbstractKeyedCollection
 {
-    private readonly array $m_map;
-
-
     /**
-     * A mapping of unique keys/names to the various security schemes.
-     * This goes in the Components object for security. This is not to be confused with the
-     * SecurityRequirementCollection, which says which of these schemes are required.
-     *
-     * @param NamedSecurityScheme ...$namedSecuritySchemes - the schemes, each of which must have a unique name.
-     *
-     * @throws \Exception - if provided two or more named security schemes that have the same name.
+     * @param NamedSecurityScheme ...$schemes - the security schemes.
+     * @throws DuplicateKeyException - if two of them have the same name.
      */
-    public function __construct(NamedSecurityScheme ...$namedSecuritySchemes)
+    public function __construct(NamedSecurityScheme ...$schemes)
     {
-        $map = [];
-
-        foreach ($namedSecuritySchemes as $namedSecurityScheme)
-        {
-            if (isset($map[$namedSecurityScheme->getName()]))
-            {
-                $msg = "Cannot have two security schemes with the same name: {$namedSecurityScheme->getName()}";
-                throw new \Exception($msg);
-            }
-
-            $map[$namedSecurityScheme->getName()] = $namedSecurityScheme->getSecurityScheme();
-        }
-
-        $this->m_map = $map;
+        parent::__construct($schemes);
     }
 
 
-    public function toArray() : array
+    public function getType() : string
     {
-        return $this->m_map;
+        return NamedSecurityScheme::class;
     }
 
 
-    public function jsonSerialize(): mixed
+    public function jsonSerialize() : \stdClass
     {
-        return $this->toArray();
+        return $this->toJsonObject();
+    }
+
+
+    protected function getKeyOf(mixed $item) : string
+    {
+        /** @var NamedSecurityScheme $item */
+        return $item->getName();
+    }
+
+
+    protected function describeKey(string $key) : string
+    {
+        return "a security scheme named \"{$key}\"";
+    }
+
+
+    protected function getJsonValueOf(mixed $item) : mixed
+    {
+        /** @var NamedSecurityScheme $item */
+        return $item->getSecurityScheme();
     }
 }

@@ -1,19 +1,75 @@
 <?php
 
-/*
- * Class for HTTP response status codes, but also includes "default" which can be used to cover undeclared responses.
- */
-
-
 namespace Programster\Swagger;
 
 
+/**
+ * The response codes that an operation's responses can be for: the HTTP status codes, ranges of them (e.g. 4XX for
+ * any client error), and DEFAULT for any code that the operation has no other response for. A MappedResponse can
+ * also be given a code that isn't here as an int, e.g. 499.
+ * https://swagger.io/specification/v3/#responses-object
+ */
 enum ResponseCode : string
 {
-    /*
-     * Use this to cover undeclared responses
+    /**
+     * Any response code that the operation doesn't have another response for, e.g. for a generic error response.
      */
     case DEFAULT = "default";
+
+
+    /**
+     * Any informational (1XX) response code that the operation doesn't have a response of its own for.
+     */
+    case ANY_INFORMATIONAL = "1XX";
+
+
+    /**
+     * Any successful (2XX) response code that the operation doesn't have a response of its own for.
+     */
+    case ANY_SUCCESS = "2XX";
+
+
+    /**
+     * Any redirection (3XX) response code that the operation doesn't have a response of its own for.
+     */
+    case ANY_REDIRECTION = "3XX";
+
+
+    /**
+     * Any client error (4XX) response code that the operation doesn't have a response of its own for.
+     */
+    case ANY_CLIENT_ERROR = "4XX";
+
+
+    /**
+     * Any server error (5XX) response code that the operation doesn't have a response of its own for.
+     */
+    case ANY_SERVER_ERROR = "5XX";
+
+
+    /**
+     * The server has received the request headers, and the client should go on to send the body.
+     */
+    case CONTINUE = "100";
+
+
+    /**
+     * The server is switching to the protocol that the client asked for in its Upgrade header.
+     */
+    case SWITCHING_PROTOCOLS = "101";
+
+
+    /**
+     * The server has received the request and is processing it, but no response is available yet. (WebDAV)
+     */
+    case PROCESSING = "102";
+
+
+    /**
+     * Some response headers are sent before the final response, so that the client can start preloading resources.
+     */
+    case EARLY_HINTS = "103";
+
 
     /**
      * Standard response for successful HTTP requests. The actual response will depend on the
@@ -36,6 +92,13 @@ enum ResponseCode : string
      * processing occurs.
      */
     case ACCEPTED = "202";
+
+
+    /**
+     * The server successfully processed the request, but is returning information that may be from another source,
+     * as it was modified by a transforming proxy.
+     */
+    case NON_AUTHORITATIVE_INFORMATION = "203";
 
 
     /**
@@ -151,8 +214,6 @@ enum ResponseCode : string
      * continue smoothly.
      */
     case PERMANENT_REDIRECT = "308";
-
-
 
 
     /**

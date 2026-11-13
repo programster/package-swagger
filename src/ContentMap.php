@@ -2,56 +2,48 @@
 
 namespace Programster\Swagger;
 
+use Programster\Swagger\Exceptions\DuplicateKeyException;
+use Programster\Swagger\Internal\AbstractKeyedCollection;
 
-class ContentMap implements \JsonSerializable
+
+/**
+ * The content of a request body, response, parameter or header: a media type for each mime type it can be sent
+ * as, under that mime type. There must be at least one.
+ */
+final class ContentMap extends AbstractKeyedCollection
 {
-    private array $m_map;
-
-
-    public function __construct(MimeType $key, MediaType $mediaType)
-    {
-        $this->m_map = [$key->value => $mediaType];
-    }
-
-
     /**
-     * Add the media type for another mime type.
-     * @param string $key - the mime type, e.g. "application/json".
-     * @param MediaType $mediaType - the media type to use for it.
-     * @return void
-     * @throws \Exception - if there's already a media type for that mime type.
+     * @param MediaType $first - the first media type. There must be at least one.
+     * @param MediaType ...$others - any others.
+     * @throws DuplicateKeyException - if two of them have the same mime type.
      */
-    public function add(string $key, MediaType $mediaType)
+    public function __construct(MediaType $first, MediaType ...$others)
     {
-        if (isset($this->m_map[$key]))
-        {
-            throw new \Exception("{$key} already taken in " . __CLASS__);
-        }
-
-        $this->m_map[$key] = $mediaType;
+        parent::__construct([$first, ...$others]);
     }
 
 
-    /**
-     * This is the same as add, except that it won't throw an exception if the key is already taken.
-     * @param string $key - the mime type, e.g. "application/json".
-     * @param MediaType $mediaType - the media type to use for it.
-     * @return void
-     */
-    public function addOrReplace(string $key, MediaType $mediaType)
+    public function getType() : string
     {
-        $this->m_map[$key] = $mediaType;
+        return MediaType::class;
     }
 
 
-    public function toArray(): array
+    public function jsonSerialize() : \stdClass
     {
-        return $this->m_map;
+        return $this->toJsonObject();
     }
 
 
-    public function jsonSerialize(): mixed
+    protected function getKeyOf(mixed $item) : string
     {
-        return $this->toArray();
+        /** @var MediaType $item */
+        return $item->getMimeType();
+    }
+
+
+    protected function describeKey(string $key) : string
+    {
+        return "a media type for \"{$key}\"";
     }
 }

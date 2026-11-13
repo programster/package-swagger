@@ -9,6 +9,8 @@ use Programster\Swagger\ContentMap;
 use Programster\Swagger\Examples\ExampleMap;
 use Programster\Swagger\Examples\NamedExample;
 use Programster\Swagger\Examples\ValueExample;
+use Programster\Swagger\Exceptions\DuplicateKeyException;
+use Programster\Swagger\Exceptions\InvalidValueException;
 use Programster\Swagger\MediaType;
 use Programster\Swagger\MimeType;
 use Programster\Swagger\NamedParameter;
@@ -16,7 +18,7 @@ use Programster\Swagger\Parameter;
 use Programster\Swagger\ParameterCollection;
 use Programster\Swagger\ParameterLocation;
 use Programster\Swagger\ParameterMap;
-use Programster\Swagger\Reference;
+use Programster\Swagger\References\ParameterReference;
 use Programster\Swagger\Schemas\SchemaString;
 use Programster\Swagger\Style;
 use Programster\Swagger\Testing\SmokeTest;
@@ -24,81 +26,97 @@ use Programster\Swagger\Testing\SmokeTest;
 /** @var SmokeTest $smoke */
 
 $testParameterFromSchema = function () : void {
-    $parameter = Parameter::createFromSchema("id", ParameterLocation::PATH, true, new SchemaString());
-    SmokeTest::assertJson('{"name":"id","in":"path","required":true,"schema":{"type":"string"}}', $parameter);
+    $parameter = Parameter::createFromSchema("search", ParameterLocation::QUERY, new SchemaString());
+    assert($parameter->getName() === "search");
+    assert($parameter->getLocation() === ParameterLocation::QUERY);
+    SmokeTest::assertJson('{"name":"search","in":"query","schema":{"type":"string"}}', $parameter);
+
+    // Path parameters are always required, so they don't need to be told.
+    $inPath = Parameter::createFromSchema("id", ParameterLocation::PATH, new SchemaString());
+    SmokeTest::assertJson('{"name":"id","in":"path","required":true,"schema":{"type":"string"}}', $inPath);
 
     $fullParameter = Parameter::createFromSchema(
         name: "search",
         in: ParameterLocation::QUERY,
-        required: false,
         schema: new SchemaString(),
+        required: true,
         description: "What to search for.",
-        deprecated: false,
+        deprecated: true,
         allowEmptyValue: true,
         style: Style::FORM,
-        explode: true,
-        allowReserved: false,
-        example: "bob",
+        explode: false,
+        allowReserved: true,
+        example: new ValueExample("bob"),
     );
 
     $expected = <<<'JSON'
         {
             "name": "search",
             "in": "query",
-            "required": false,
             "description": "What to search for.",
-            "deprecated": false,
+            "required": true,
+            "deprecated": true,
             "allowEmptyValue": true,
-            "schema": {"type": "string"},
             "style": "form",
-            "explode": true,
-            "allowReserved": false,
+            "explode": false,
+            "allowReserved": true,
+            "schema": {"type": "string"},
             "example": "bob"
         }
         JSON;
 
     SmokeTest::assertJson($expected, $fullParameter);
-    SmokeTest::assertJson($expected, $fullParameter->toArray());
-
-    // A plain (non-object) example used to crash.
-    $withValue = Parameter::createFromSchema("id", ParameterLocation::QUERY, true, new SchemaString(), example: 5);
-    $expected = '{"name":"id","in":"query","required":true,"schema":{"type":"string"},"example":5}';
-    SmokeTest::assertJson($expected, $withValue);
-
-    $withObject = Parameter::createFromSchema(
-        "id",
-        ParameterLocation::QUERY,
-        true,
-        new SchemaString(),
-        example: new ValueExample("abc")
-    );
-
-    $expected = '{"name":"id","in":"query","required":true,"schema":{"type":"string"},"example":"abc"}';
-    SmokeTest::assertJson($expected, $withObject);
 
     $examples = new ExampleMap(new NamedExample("a", new ValueExample("abc")));
-
-    $withMap = Parameter::createFromSchema(
-        "id",
-        ParameterLocation::QUERY,
-        true,
-        new SchemaString(),
-        example: $examples
-    );
-
-    $expected = '{"name":"id","in":"query","required":true,"schema":{"type":"string"},'
-        . '"examples":{"a":{"value":"abc"}}}';
-
+    $withMap = Parameter::createFromSchema("id", ParameterLocation::QUERY, new SchemaString(), example: $examples);
+    $expected = '{"name":"id","in":"query","schema":{"type":"string"},"examples":{"a":{"value":"abc"}}}';
     SmokeTest::assertJson($expected, $withMap);
-
-    $inPathAllowingEmpty = function () : void {
-        Parameter::createFromSchema("id", ParameterLocation::PATH, true, new SchemaString(), allowEmptyValue: true);
-    };
-
-    SmokeTest::expectException(\Exception::class, $inPathAllowingEmpty, "allowEmptyValue can only be set to true");
 };
 
 $smoke->run("Parameter::createFromSchema()", $testParameterFromSchema);
+
+$testParameterRules = function () : void {
+    $optionalInPath = function () : void {
+        Parameter::createFromSchema("id", ParameterLocation::PATH, new SchemaString(), required: false);
+    };
+
+    SmokeTest::expectException(InvalidValueException::class, $optionalInPath, "is in the path, so it must be required");
+
+    $authorizationHeader = function () : void {
+        Parameter::createFromSchema("Authorization", ParameterLocation::HEADER, new SchemaString());
+    };
+
+    SmokeTest::expectException(InvalidValueException::class, $authorizationHeader, "would be ignored");
+
+    $emptyInHeader = function () : void {
+        Parameter::createFromSchema("X-A", ParameterLocation::HEADER, new SchemaString(), allowEmptyValue: true);
+    };
+
+    SmokeTest::expectException(
+        InvalidValueException::class,
+        $emptyInHeader,
+        "allowEmptyValue can only be used for parameters in the query"
+    );
+
+    $reservedInCookie = function () : void {
+        Parameter::createFromSchema("session", ParameterLocation::COOKIE, new SchemaString(), allowReserved: true);
+    };
+
+    SmokeTest::expectException(
+        InvalidValueException::class,
+        $reservedInCookie,
+        "allowReserved can only be used for parameters in the query"
+    );
+
+    $twoMediaTypes = function () : void {
+        $content = new ContentMap(new MediaType(MimeType::JSON), new MediaType(MimeType::XML));
+        Parameter::createFromContentMap("filter", ParameterLocation::QUERY, $content);
+    };
+
+    SmokeTest::expectException(InvalidValueException::class, $twoMediaTypes, "must have exactly one media type");
+};
+
+$smoke->run("Parameter rules", $testParameterRules);
 
 $testParameterStyles = function () : void {
     $allowedLocations = [
@@ -115,54 +133,40 @@ $testParameterStyles = function () : void {
 
     foreach ($allowedLocations as [$style, $location])
     {
-        $parameter = Parameter::createFromSchema("a", $location, true, new SchemaString(), style: $style);
-        assert($parameter->toArray()['style'] === $style, "{$style->value} should be allowed in {$location->value}");
-
-        // A string style used to crash, as the constructor only takes the enum.
-        $fromString = Parameter::createFromSchema("a", $location, true, new SchemaString(), style: $style->value);
-        assert($fromString->toArray()['style'] === $style);
+        $parameter = Parameter::createFromSchema("a", $location, new SchemaString(), style: $style);
+        assert($parameter->jsonSerialize()->style === $style->value);
     }
 
     $matrixInQuery = function () : void {
-        Parameter::createFromSchema("a", ParameterLocation::QUERY, true, new SchemaString(), style: Style::MATRIX);
+        Parameter::createFromSchema("a", ParameterLocation::QUERY, new SchemaString(), style: Style::MATRIX);
     };
 
-    $expectedMessage = "The matrix style is only applicable to parameters in the 'path'";
-    SmokeTest::expectException(\Exception::class, $matrixInQuery, $expectedMessage);
+    SmokeTest::expectException(
+        InvalidValueException::class,
+        $matrixInQuery,
+        "The matrix style can only be used for parameters in the 'path'"
+    );
 
     $formInPath = function () : void {
-        Parameter::createFromSchema("a", ParameterLocation::PATH, true, new SchemaString(), style: "form");
+        Parameter::createFromSchema("a", ParameterLocation::PATH, new SchemaString(), style: Style::FORM);
     };
 
-    SmokeTest::expectException(\Exception::class, $formInPath, "in the 'query' or 'cookie'");
-
-    $deepObjectInHeader = function () : void {
-        $style = Style::DEEP_OBJECT;
-        Parameter::createFromSchema("a", ParameterLocation::HEADER, true, new SchemaString(), style: $style);
-    };
-
-    SmokeTest::expectException(\Exception::class, $deepObjectInHeader, "The deepObject style");
-
-    $unknownStyle = function () : void {
-        Parameter::createFromSchema("a", ParameterLocation::QUERY, true, new SchemaString(), style: "sideways");
-    };
-
-    SmokeTest::expectException(\ValueError::class, $unknownStyle, "sideways");
+    SmokeTest::expectException(InvalidValueException::class, $formInPath, "in the 'query' or 'cookie'");
 };
 
 $smoke->run("Parameter styles", $testParameterStyles);
 
 $testParameterFromContentMap = function () : void {
-    $content = new ContentMap(MimeType::JSON, new MediaType(new SchemaString()));
+    $content = new ContentMap(new MediaType(MimeType::JSON, new SchemaString()));
     $in = ParameterLocation::QUERY;
-    $parameter = Parameter::createFromContentMap("filter", $in, false, $content, "A filter.", true, true);
+    $parameter = Parameter::createFromContentMap("filter", $in, $content, true, "A filter.", true, true);
 
     $expected = <<<'JSON'
         {
             "name": "filter",
             "in": "query",
-            "required": false,
             "description": "A filter.",
+            "required": true,
             "deprecated": true,
             "allowEmptyValue": true,
             "content": {"application/json": {"schema": {"type": "string"}}}
@@ -170,52 +174,56 @@ $testParameterFromContentMap = function () : void {
         JSON;
 
     SmokeTest::assertJson($expected, $parameter);
-
-    $inHeaderAllowingEmpty = function () use ($content) : void {
-        Parameter::createFromContentMap("a", ParameterLocation::HEADER, true, $content, allowEmptyValue: true);
-    };
-
-    SmokeTest::expectException(\Exception::class, $inHeaderAllowingEmpty, "allowEmptyValue");
 };
 
 $smoke->run("Parameter::createFromContentMap()", $testParameterFromContentMap);
 
 $testParameterCollection = function () : void {
-    $collection = new ParameterCollection(new Reference("#/a"));
-    $collection->append(Parameter::createFromSchema("b", ParameterLocation::QUERY, false, new SchemaString()));
-    $collection[] = new Reference("#/c");
-    $expected = '[{"$ref":"#/a"},{"name":"b","in":"query","required":false,"schema":{"type":"string"}},{"$ref":"#/c"}]';
+    $collection = new ParameterCollection(
+        ParameterReference::createToComponent("userId"),
+        Parameter::createFromSchema("id", ParameterLocation::PATH, new SchemaString()),
+        Parameter::createFromSchema("id", ParameterLocation::QUERY, new SchemaString()),
+    );
+
+    $expected = '[{"$ref":"#/components/parameters/userId"},{"name":"id","in":"path","required":true,'
+        . '"schema":{"type":"string"}},{"name":"id","in":"query","schema":{"type":"string"}}]';
+
     SmokeTest::assertJson($expected, $collection);
+    assert($collection->getPathParameterNames() === ["id"]);
+    assert($collection->hasReferences());
+    assert((new ParameterCollection())->hasReferences() === false);
 
-    $appendString = function () use ($collection) : void {
-        $collection->append("not a parameter");
+    $addDuplicate = function () use ($collection) : void {
+        $collection->add(Parameter::createFromSchema("id", ParameterLocation::QUERY, new SchemaString()));
     };
 
-    SmokeTest::expectException(\Exception::class, $appendString, "Cannot append non Parameter");
-
-    $setString = function () use ($collection) : void {
-        $collection[0] = "not a parameter";
-    };
-
-    SmokeTest::expectException(\Exception::class, $setString, "Cannot add a non Parameter value");
+    SmokeTest::expectException(DuplicateKeyException::class, $addDuplicate, 'already has a query parameter named "id"');
 };
 
 $smoke->run("ParameterCollection", $testParameterCollection);
 
 $testParameterMap = function () : void {
-    $reference = new Reference("#/a");
-    $named = new NamedParameter("users_id", $reference);
-    assert($named->getName() === "users_id");
-    assert($named->getParameter() === $reference);
+    $parameter = Parameter::createFromSchema("id", ParameterLocation::PATH, new SchemaString());
+    $named = new NamedParameter("userId", $parameter);
+    assert($named->getName() === "userId");
+    assert($named->getParameter() === $parameter);
+    SmokeTest::assertJson('{"$ref":"#/components/parameters/userId"}', $named->createReference());
 
-    $map = new ParameterMap($named, new NamedParameter("groups_id", new Reference("#/b")));
-    SmokeTest::assertJson('{"users_id":{"$ref":"#/a"},"groups_id":{"$ref":"#/b"}}', $map);
+    $map = new ParameterMap(
+        $named,
+        new NamedParameter("groupId", ParameterReference::createToDocument("group-id.json"))
+    );
 
-    $createWithDuplicateNames = function () : void {
-        new ParameterMap(new NamedParameter("a", new Reference("#/a")), new NamedParameter("a", new Reference("#/b")));
+    $expected = '{"userId":{"name":"id","in":"path","required":true,"schema":{"type":"string"}},'
+        . '"groupId":{"$ref":"group-id.json"}}';
+
+    SmokeTest::assertJson($expected, $map);
+
+    $createWithDuplicateNames = function () use ($named) : void {
+        new ParameterMap($named, $named);
     };
 
-    SmokeTest::expectException(\Exception::class, $createWithDuplicateNames, "Parameter name clash: a");
+    SmokeTest::expectException(DuplicateKeyException::class, $createWithDuplicateNames, 'a parameter named "userId"');
 };
 
 $smoke->run("ParameterMap and NamedParameter", $testParameterMap);

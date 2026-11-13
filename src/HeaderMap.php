@@ -2,42 +2,54 @@
 
 namespace Programster\Swagger;
 
+use Programster\Swagger\Exceptions\DuplicateKeyException;
+use Programster\Swagger\Internal\AbstractKeyedCollection;
 
-class HeaderMap implements \JsonSerializable
+
+/**
+ * The headers in the components, each under its component name. The headers of a response or an encoding, which are
+ * under their HTTP names, are a HeaderCollection instead.
+ */
+final class HeaderMap extends AbstractKeyedCollection
 {
-    private readonly array $m_map;
-
-
     /**
-     * @param Header ...$headers - the headers, each of which must have a unique name.
-     * @throws \Exception - if two of the headers have the same name.
+     * @param NamedHeader ...$headers - the headers.
+     * @throws DuplicateKeyException - if two of them have the same name.
      */
-    public function __construct(Header ...$headers)
+    public function __construct(NamedHeader ...$headers)
     {
-        $map = [];
-
-        foreach ($headers as $header)
-        {
-            if (isset($map[$header->getName()]))
-            {
-                throw new \Exception("Duplicate header: {$header->getName()}");
-            }
-
-            $map[$header->getName()] = $header;
-        }
-
-        $this->m_map = $map;
+        parent::__construct($headers);
     }
 
 
-    public function toArray() : array
+    public function getType() : string
     {
-        return $this->m_map;
+        return NamedHeader::class;
     }
 
 
-    public function jsonSerialize(): mixed
+    public function jsonSerialize() : \stdClass
     {
-        return $this->toArray();
+        return $this->toJsonObject();
+    }
+
+
+    protected function getKeyOf(mixed $item) : string
+    {
+        /** @var NamedHeader $item */
+        return $item->getName();
+    }
+
+
+    protected function describeKey(string $key) : string
+    {
+        return "a header named \"{$key}\"";
+    }
+
+
+    protected function getJsonValueOf(mixed $item) : mixed
+    {
+        /** @var NamedHeader $item */
+        return $item->getHeader();
     }
 }

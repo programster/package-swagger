@@ -9,6 +9,9 @@ use Programster\Swagger\Examples\ExampleMap;
 use Programster\Swagger\Examples\ExternalValueExample;
 use Programster\Swagger\Examples\NamedExample;
 use Programster\Swagger\Examples\ValueExample;
+use Programster\Swagger\Exceptions\DuplicateKeyException;
+use Programster\Swagger\Exceptions\InvalidValueException;
+use Programster\Swagger\References\ExampleReference;
 use Programster\Swagger\Testing\SmokeTest;
 
 /** @var SmokeTest $smoke */
@@ -24,14 +27,13 @@ $smoke->run("ValueExample", $testValueExample);
 
 $testExternalValueExample = function () : void {
     $example = new ExternalValueExample("https://example.com/user.json");
-    assert($example->toArray() === ['externalValue' => "https://example.com/user.json"]);
-    SmokeTest::assertJson('{"externalValue":"https://example.com/user.json"}', $example);
+    assert($example->getUrl() === "https://example.com/user.json");
 
     $createWithBadUrl = function () : void {
         new ExternalValueExample("not a url");
     };
 
-    SmokeTest::expectException(\Exception::class, $createWithBadUrl, "externalValue needs to be a valid URL");
+    SmokeTest::expectException(InvalidValueException::class, $createWithBadUrl, "must be a URL");
 };
 
 $smoke->run("ExternalValueExample", $testExternalValueExample);
@@ -44,47 +46,73 @@ $testNamedExample = function () : void {
     assert($example->getSummary() === "The number one.");
     assert($example->getDescription() === "A longer description of one.");
 
-    $withoutText = new NamedExample("one", $value);
-    assert($withoutText->getSummary() === null && $withoutText->getDescription() === null);
+    SmokeTest::assertJson(
+        '{"summary":"The number one.","description":"A longer description of one.","value":1}',
+        $example
+    );
+
+    $external = new NamedExample("remote", new ExternalValueExample("https://example.com/user.json"));
+    SmokeTest::assertJson('{"externalValue":"https://example.com/user.json"}', $external);
+
+    $createWithoutName = function () : void {
+        new NamedExample("", new ValueExample(1));
+    };
+
+    SmokeTest::expectException(InvalidValueException::class, $createWithoutName, "name can't be an empty string");
 };
 
 $smoke->run("NamedExample", $testNamedExample);
 
 $testExampleMap = function () : void {
     $map = new ExampleMap(
-        new NamedExample("user", new ValueExample(['name' => "Bob"]), "A user.", "A user called Bob."),
+        new NamedExample("user", new ValueExample(['name' => "Bob"]), "A user."),
         new NamedExample("remote", new ExternalValueExample("https://example.com/user.json")),
     );
 
     $expected = <<<'JSON'
         {
-            "user": {"value": {"name": "Bob"}, "description": "A user called Bob.", "summary": "A user."},
+            "user": {"summary": "A user.", "value": {"name": "Bob"}},
             "remote": {"externalValue": "https://example.com/user.json"}
         }
         JSON;
 
     SmokeTest::assertJson($expected, $map);
-    SmokeTest::assertJson($expected, $map->toArray());
-
-    // An empty map used to crash, as its array was never set.
-    assert((new ExampleMap())->toArray() === []);
-
-    $map->add(new NamedExample("other", new ValueExample(2)));
-    $map->addOrReplace(new NamedExample("user", new ValueExample(3)));
-    assert($map->toArray()['user'] === ['value' => 3]);
-    assert($map->toArray()['other'] === ['value' => 2]);
-
-    $addDuplicate = function () use ($map) : void {
-        $map->add(new NamedExample("other", new ValueExample(4)));
-    };
-
-    SmokeTest::expectException(\Exception::class, $addDuplicate, "other already taken");
+    SmokeTest::assertJson('{}', new ExampleMap());
 
     $createWithDuplicateNames = function () : void {
         new ExampleMap(new NamedExample("a", new ValueExample(1)), new NamedExample("a", new ValueExample(2)));
     };
 
-    SmokeTest::expectException(\Exception::class, $createWithDuplicateNames, "a already taken");
+    SmokeTest::expectException(DuplicateKeyException::class, $createWithDuplicateNames, 'an example named "a"');
 };
 
 $smoke->run("ExampleMap", $testExampleMap);
+
+$testNamedExampleReference = function () : void {
+    $bob = new NamedExample("Bob", new ValueExample("bob"), "A user.");
+    $reference = $bob->createReference();
+    SmokeTest::assertJson('{"$ref":"#/components/examples/Bob"}', $reference);
+
+    $usesReference = new NamedExample("bob", $reference);
+    assert($usesReference->getExample() === $reference);
+    SmokeTest::assertJson('{"$ref":"#/components/examples/Bob"}', $usesReference);
+    SmokeTest::assertJson('{"bob":{"$ref":"#/components/examples/Bob"}}', new ExampleMap($usesReference));
+
+    $referenceWithSummary = function () use ($reference) : void {
+        new NamedExample("bob", $reference, summary: "A user.");
+    };
+
+    SmokeTest::expectException(
+        InvalidValueException::class,
+        $referenceWithSummary,
+        "is a reference, so it can't have a summary, description or extensions"
+    );
+
+    $referenceToBadName = function () : void {
+        (new NamedExample("Bob Smith", new ValueExample("bob")))->createReference();
+    };
+
+    SmokeTest::expectException(InvalidValueException::class, $referenceToBadName, "can only contain letters");
+};
+
+$smoke->run("NamedExample with a reference", $testNamedExampleReference);

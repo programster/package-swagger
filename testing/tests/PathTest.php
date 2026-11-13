@@ -1,24 +1,41 @@
 <?php
 
 /*
- * Smoke tests for Path, PathCollection, Operation, OperationCollection, Callback, NamedCallback and Callbacks. These
- * are run by testing/main.php, which provides $smoke.
+ * Smoke tests for Operation, OperationCollection, PathItem, Path, PathCollection, Callback, NamedCallback and
+ * CallbackMap. These are run by testing/main.php, which provides $smoke.
  */
 
 use Programster\Swagger\Callback;
-use Programster\Swagger\Callbacks;
+use Programster\Swagger\CallbackMap;
+use Programster\Swagger\ContentMap;
+use Programster\Swagger\Exceptions\DuplicateKeyException;
+use Programster\Swagger\Exceptions\InvalidDocumentException;
+use Programster\Swagger\Exceptions\InvalidValueException;
+use Programster\Swagger\ExternalDocumentation;
+use Programster\Swagger\Info;
 use Programster\Swagger\MappedResponse;
+use Programster\Swagger\MediaType;
 use Programster\Swagger\Method;
+use Programster\Swagger\MimeType;
 use Programster\Swagger\NamedCallback;
+use Programster\Swagger\OpenApi;
 use Programster\Swagger\Operation;
 use Programster\Swagger\OperationCollection;
+use Programster\Swagger\Parameter;
 use Programster\Swagger\ParameterCollection;
+use Programster\Swagger\ParameterLocation;
 use Programster\Swagger\Path;
 use Programster\Swagger\PathCollection;
-use Programster\Swagger\Reference;
+use Programster\Swagger\PathItem;
+use Programster\Swagger\References\CallbackReference;
+use Programster\Swagger\References\ParameterReference;
+use Programster\Swagger\References\PathItemReference;
+use Programster\Swagger\References\RequestBodyReference;
+use Programster\Swagger\RequestBody;
+use Programster\Swagger\Response;
 use Programster\Swagger\ResponseCode;
 use Programster\Swagger\ResponseCollection;
-use Programster\Swagger\Security\SecurityRequirement;
+use Programster\Swagger\Schemas\SchemaString;
 use Programster\Swagger\Security\SecurityRequirementCollection;
 use Programster\Swagger\Server;
 use Programster\Swagger\ServerCollection;
@@ -27,182 +44,276 @@ use Programster\Swagger\Testing\SmokeTest;
 /** @var SmokeTest $smoke */
 
 $createOkResponses = function () : ResponseCollection {
-    return new ResponseCollection(new MappedResponse(ResponseCode::OK, new Reference("#/responses/Ok")));
+    return new ResponseCollection(new MappedResponse(ResponseCode::OK, new Response("OK.")));
+};
+
+$createIdParameter = function () : Parameter {
+    return Parameter::createFromSchema("id", ParameterLocation::PATH, new SchemaString());
 };
 
 $testOperation = function () use ($createOkResponses) : void {
     $operation = new Operation(Method::GET, $createOkResponses());
     assert($operation->getMethod() === Method::GET);
+    assert($operation->getOperationId() === null);
+    assert($operation->getSecurity() === null);
 
-    // The method isn't output, as it is the operation's key in its Path.
-    SmokeTest::assertJson('{"responses":{"200":{"$ref":"#/responses/Ok"}}}', $operation);
+    // The method isn't output, as it is the operation's key in its PathItem.
+    SmokeTest::assertJson('{"responses":{"200":{"description":"OK."}}}', $operation);
 
     $fullOperation = new Operation(
         method: Method::POST,
         responses: $createOkResponses(),
         summary: "Create a user.",
         description: "Creates a user.",
-        parameters: new ParameterCollection(new Reference("#/parameters/a")),
-        requestBody: new Reference("#/requestBodies/User"),
-        tags: ["users"],
+        parameters: new ParameterCollection(ParameterReference::createToComponent("tenant")),
+        requestBody: RequestBodyReference::createToComponent("User"),
+        tags: ["users", "users", "admin"],
         operationId: "createUser",
-        externalDocs: "https://docs.example.com",
-        callbacks: new Callbacks(new NamedCallback("onCreate", new Reference("#/callbacks/a"))),
+        externalDocs: new ExternalDocumentation("https://docs.example.com/users"),
+        callbacks: new CallbackMap(new NamedCallback("onCreate", CallbackReference::createToComponent("UserCreated"))),
         deprecated: true,
-        security: new SecurityRequirementCollection(new SecurityRequirement("apiKey", [])),
-        servers: new ServerCollection(new Server("https://api.example.com", null, null)),
+        security: new SecurityRequirementCollection(),
+        servers: new ServerCollection(new Server("https://api.example.com")),
     );
 
+    // Empty security means the operation is public, so it's output as [], rather than left out.
     $expected = <<<'JSON'
         {
-            "responses": {"200": {"$ref": "#/responses/Ok"}},
+            "tags": ["users", "admin"],
             "summary": "Create a user.",
             "description": "Creates a user.",
-            "parameters": [{"$ref": "#/parameters/a"}],
-            "requestBody": {"$ref": "#/requestBodies/User"},
-            "tags": ["users"],
+            "externalDocs": {"url": "https://docs.example.com/users"},
             "operationId": "createUser",
-            "externalDocs": "https://docs.example.com",
-            "callbacks": {"onCreate": {"$ref": "#/callbacks/a"}},
+            "parameters": [{"$ref": "#/components/parameters/tenant"}],
+            "requestBody": {"$ref": "#/components/requestBodies/User"},
+            "responses": {"200": {"description": "OK."}},
+            "callbacks": {"onCreate": {"$ref": "#/components/callbacks/UserCreated"}},
             "deprecated": true,
-            "security": [{"apiKey": []}],
+            "security": [],
             "servers": [{"url": "https://api.example.com"}]
         }
         JSON;
 
     SmokeTest::assertJson($expected, $fullOperation);
+    assert($fullOperation->getOperationId() === "createUser");
+    assert(count($fullOperation->getSecurity()) === 0);
+    assert(count($fullOperation->getParameters()) === 1);
+};
 
-    $createWithoutResponses = function () : void {
-        new Operation(Method::GET, new ResponseCollection());
-    };
+$smoke->run("Operation", $testOperation);
 
-    SmokeTest::expectException(\Exception::class, $createWithoutResponses, "need at least one response");
+$testOperationRules = function () use ($createOkResponses) : void {
+    $body = new RequestBody(new ContentMap(new MediaType(MimeType::JSON)));
+
+    foreach ([Method::GET, Method::HEAD, Method::DELETE, Method::TRACE] as $method)
+    {
+        $createWithBody = function () use ($method, $createOkResponses, $body) : void {
+            new Operation($method, $createOkResponses(), requestBody: $body);
+        };
+
+        SmokeTest::expectException(InvalidValueException::class, $createWithBody, "can't have a request body");
+    }
+
+    foreach ([Method::POST, Method::PUT, Method::PATCH, Method::OPTIONS] as $method)
+    {
+        new Operation($method, $createOkResponses(), requestBody: $body);
+    }
 
     $createWithNumericTag = function () use ($createOkResponses) : void {
         new Operation(Method::GET, $createOkResponses(), tags: ["users", 5]);
     };
 
-    SmokeTest::expectException(\Exception::class, $createWithNumericTag, "one of them is of type int");
+    SmokeTest::expectException(InvalidValueException::class, $createWithNumericTag, "one was a int");
+
+    // The responses can be emptied after they are created, so the operation checks too.
+    $createWithEmptiedResponses = function () use ($createOkResponses) : void {
+        $responses = $createOkResponses();
+        $responses->clear();
+        new Operation(Method::GET, $responses);
+    };
+
+    SmokeTest::expectException(
+        InvalidValueException::class,
+        $createWithEmptiedResponses,
+        "needs at least one response"
+    );
 };
 
-$smoke->run("Operation", $testOperation);
+$smoke->run("Operation rules", $testOperationRules);
 
 $testOperationCollection = function () use ($createOkResponses) : void {
     $collection = new OperationCollection(new Operation(Method::GET, $createOkResponses()));
-    $collection->append(new Operation(Method::POST, $createOkResponses()));
-    $collection[] = new Operation(Method::PUT, $createOkResponses());
-    assert(count($collection) === 3);
-    assert($collection->jsonSerialize()[2]->getMethod() === Method::PUT);
+    $collection->add(new Operation(Method::POST, $createOkResponses()));
+    assert($collection->getKeys() === ["get", "post"]);
 
-    // These used to fail with "Class not found", as the exception class wasn't fully qualified.
-    $appendString = function () use ($collection) : void {
-        $collection->append("not an operation");
+    $addDuplicate = function () use ($collection, $createOkResponses) : void {
+        $collection->add(new Operation(Method::GET, $createOkResponses()));
     };
 
-    SmokeTest::expectException(\Exception::class, $appendString, "Cannot append non Operation");
-
-    $setString = function () use ($collection) : void {
-        $collection[0] = "not an operation";
-    };
-
-    SmokeTest::expectException(\Exception::class, $setString, "Cannot add a non Operation value");
+    SmokeTest::expectException(DuplicateKeyException::class, $addDuplicate, "already has a GET operation");
 };
 
 $smoke->run("OperationCollection", $testOperationCollection);
 
-$testPath = function () use ($createOkResponses) : void {
-    $operations = new OperationCollection(
-        new Operation(Method::GET, $createOkResponses()),
-        new Operation(Method::DELETE, $createOkResponses()),
-    );
+$testPathItem = function () use ($createOkResponses, $createIdParameter) : void {
+    SmokeTest::assertJson('{}', new PathItem());
 
-    $path = new Path("/users", $operations);
-    assert($path->getRelativePath() === "/users");
+    $item = new PathItem(
+        operations: new OperationCollection(
+            new Operation(Method::GET, $createOkResponses()),
+            new Operation(Method::DELETE, $createOkResponses()),
+        ),
+        summary: "A user.",
+        description: "One user.",
+        servers: new ServerCollection(new Server("https://api.example.com")),
+        parameters: new ParameterCollection($createIdParameter()),
+    );
 
     $expected = <<<'JSON'
         {
-            "get": {"responses": {"200": {"$ref": "#/responses/Ok"}}},
-            "delete": {"responses": {"200": {"$ref": "#/responses/Ok"}}}
-        }
-        JSON;
-
-    SmokeTest::assertJson($expected, $path);
-
-    $fullPath = new Path(
-        relativePath: "/users",
-        operations: new OperationCollection(new Operation(Method::GET, $createOkResponses())),
-        ref: "users.json",
-        summary: "Users.",
-        description: "Managing users.",
-        servers: new ServerCollection(new Server("https://api.example.com", null, null)),
-        parameters: new ParameterCollection(new Reference("#/parameters/a")),
-    );
-
-    // The reference used to be output as "#ref", rather than "$ref".
-    $expected = <<<'JSON'
-        {
-            "$ref": "users.json",
-            "summary": "Users.",
-            "description": "Managing users.",
+            "summary": "A user.",
+            "description": "One user.",
+            "get": {"responses": {"200": {"description": "OK."}}},
+            "delete": {"responses": {"200": {"description": "OK."}}},
             "servers": [{"url": "https://api.example.com"}],
-            "parameters": [{"$ref": "#/parameters/a"}],
-            "get": {"responses": {"200": {"$ref": "#/responses/Ok"}}}
+            "parameters": [{"name": "id", "in": "path", "required": true, "schema": {"type": "string"}}]
         }
         JSON;
 
-    SmokeTest::assertJson($expected, $fullPath);
-    SmokeTest::assertJson($expected, $fullPath->toArray());
+    SmokeTest::assertJson($expected, $item);
+    assert(count($item->getOperations()) === 2 && count($item->getParameters()) === 1);
+};
 
-    // A path without any operations used to raise a warning, from looping over null.
-    SmokeTest::assertJson('{"summary":"Users."}', new Path("/users", null, summary: "Users."));
+$smoke->run("PathItem", $testPathItem);
+
+$testPath = function () use ($createOkResponses, $createIdParameter) : void {
+    $operations = new OperationCollection(new Operation(Method::GET, $createOkResponses()));
+    $item = new PathItem($operations, parameters: new ParameterCollection($createIdParameter()));
+    $path = new Path("/users/{id}", $item);
+    assert($path->getRelativePath() === "/users/{id}");
+    assert($path->getItem() === $item);
+
+    // The path parameter can be the operation's own, instead of the item's.
+    $ownParameter = new Operation(
+        Method::GET,
+        $createOkResponses(),
+        parameters: new ParameterCollection($createIdParameter())
+    );
+
+    new Path("/users/{id}", new PathItem(new OperationCollection($ownParameter)));
+
+    // A reference could be to the path parameter, so it can't be said to be missing.
+    $byReference = new Operation(
+        Method::GET,
+        $createOkResponses(),
+        parameters: new ParameterCollection(ParameterReference::createToComponent("userId"))
+    );
+
+    new Path("/users/{id}", new PathItem(new OperationCollection($byReference)));
+
+    $createWithoutSlash = function () : void {
+        new Path("users", new PathItem());
+    };
+
+    SmokeTest::expectException(InvalidValueException::class, $createWithoutSlash, "must start with a \"/\"");
+
+    $createWithMissingParameter = function () use ($operations) : void {
+        new Path("/users/{id}", new PathItem($operations));
+    };
+
+    SmokeTest::expectException(
+        InvalidDocumentException::class,
+        $createWithMissingParameter,
+        'GET /users/{id} has no path parameter named "id"'
+    );
+
+    $createWithUnusedParameter = function () use ($item) : void {
+        new Path("/users", $item);
+    };
+
+    SmokeTest::expectException(
+        InvalidDocumentException::class,
+        $createWithUnusedParameter,
+        'has a path parameter named "id", but the path has no {id}'
+    );
 };
 
 $smoke->run("Path", $testPath);
 
-$testPathCollection = function () : void {
-    $collection = new PathCollection(new Path("/users", null));
-    $collection->append(new Path("/groups", null));
-    $collection[] = new Path("/roles", null);
-    assert(count($collection) === 3);
-    assert($collection->jsonSerialize()[1]->getRelativePath() === "/groups");
+$testPathCollection = function () use ($createOkResponses, $createIdParameter) : void {
+    $byId = new PathItem(
+        new OperationCollection(new Operation(Method::GET, $createOkResponses())),
+        parameters: new ParameterCollection($createIdParameter())
+    );
 
-    $appendString = function () use ($collection) : void {
-        $collection->append("/not-a-path");
+    $collection = new PathCollection(new Path("/users", new PathItem()), new Path("/users/{id}", $byId));
+    SmokeTest::assertJson('{"/users":{},"/users/{id}":' . json_encode($byId) . '}', $collection);
+
+    // Paths that only differ in their variables' names are the same path.
+    $name = Parameter::createFromSchema("name", ParameterLocation::PATH, new SchemaString());
+
+    $byName = new PathItem(
+        new OperationCollection(new Operation(Method::GET, $createOkResponses())),
+        parameters: new ParameterCollection($name)
+    );
+
+    $addSamePath = function () use ($collection, $byName) : void {
+        $collection->add(new Path("/users/{name}", $byName));
     };
 
-    SmokeTest::expectException(\Exception::class, $appendString, "Cannot append non Path");
-
-    $setString = function () use ($collection) : void {
-        $collection[0] = "/not-a-path";
-    };
-
-    SmokeTest::expectException(\Exception::class, $setString, "Cannot add a non Path value");
+    SmokeTest::expectException(DuplicateKeyException::class, $addSamePath, 'a path that matches "/users/{}"');
 };
 
 $smoke->run("PathCollection", $testPathCollection);
 
 $testCallbacks = function () use ($createOkResponses) : void {
-    $path = new Path("/hook", new OperationCollection(new Operation(Method::POST, $createOkResponses())));
-    $callback = new Callback('{$request.body#/callbackUrl}', $path);
-    $expected = '{"{$request.body#/callbackUrl}":{"post":{"responses":{"200":{"$ref":"#/responses/Ok"}}}}}';
+    $item = new PathItem(new OperationCollection(new Operation(Method::POST, $createOkResponses())));
+    $callback = new Callback('{$request.body#/callbackUrl}', $item);
+    $expected = '{"{$request.body#/callbackUrl}":{"post":{"responses":{"200":{"description":"OK."}}}}}';
     SmokeTest::assertJson($expected, $callback);
 
-    $named = new NamedCallback("onCreate", $callback);
-    assert($named->getName() === "onCreate");
-    assert($named->getCallback() === $callback);
-
-    $callbacks = new Callbacks($named, new NamedCallback("onDelete", new Reference("#/callbacks/onDelete")));
-
-    $expected = '{"onCreate":{"{$request.body#/callbackUrl}":{"post":{"responses":{"200":{"$ref":"#/responses/Ok"}}}}},'
-        . '"onDelete":{"$ref":"#/callbacks/onDelete"}}';
-
-    SmokeTest::assertJson($expected, $callbacks);
+    $named = new NamedCallback("UserCreated", $callback);
+    assert($named->getName() === "UserCreated" && $named->getCallback() === $callback);
+    SmokeTest::assertJson('{"$ref":"#/components/callbacks/UserCreated"}', $named->createReference());
+    SmokeTest::assertJson('{"UserCreated":' . $expected . '}', new CallbackMap($named));
 
     $createWithDuplicateNames = function () use ($named) : void {
-        new Callbacks($named, $named);
+        new CallbackMap($named, $named);
     };
 
-    SmokeTest::expectException(\Exception::class, $createWithDuplicateNames, "same name: onCreate");
+    SmokeTest::expectException(
+        DuplicateKeyException::class,
+        $createWithDuplicateNames,
+        'a callback named "UserCreated"'
+    );
+
+    $createWithoutExpression = function () use ($item) : void {
+        new Callback("", $item);
+    };
+
+    SmokeTest::expectException(
+        InvalidValueException::class,
+        $createWithoutExpression,
+        "expression can't be an empty string"
+    );
 };
 
-$smoke->run("Callback, NamedCallback and Callbacks", $testCallbacks);
+$smoke->run("Callback, NamedCallback and CallbackMap", $testCallbacks);
+
+$testPathItemReferences = function () : void {
+    $shared = PathItemReference::createToDocument("shared/health.json");
+
+    // The path's variables can't be checked against parameters that are in another document.
+    $path = new Path("/health/{check}", $shared);
+    assert($path->getItem() === $shared);
+    SmokeTest::assertJson('{"/health/{check}":{"$ref":"shared/health.json"}}', new PathCollection($path));
+
+    $callback = new Callback('{$request.body#/url}', $shared);
+    SmokeTest::assertJson('{"{$request.body#/url}":{"$ref":"shared/health.json"}}', $callback);
+
+    // The document skips the operations it can't see.
+    $document = new OpenApi(new Info("API", "1.0"), new PathCollection($path));
+    SmokeTest::assertJson('{"/health/{check}":{"$ref":"shared/health.json"}}', $document->jsonSerialize()->paths);
+};
+
+$smoke->run("Paths and callbacks with path item references", $testPathItemReferences);

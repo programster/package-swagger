@@ -4,13 +4,13 @@
 #
 # Usage:
 #   testing/run-all-php-versions.sh                # test every supported version
-#   testing/run-all-php-versions.sh 8.1 8.5        # test only these versions
+#   testing/run-all-php-versions.sh 8.2 8.5        # test only these versions
 #   testing/run-all-php-versions.sh --rebuild      # rebuild the Docker images first (e.g. to get the latest patch release)
 #
 # Requires Docker, and "composer install" to have been run, as the tests use the vendor/ directory.
 # Exits with 0 if every version passed, or 1 if any failed.
 
-SUPPORTED_VERSIONS="8.1 8.2 8.3 8.4 8.5"
+SUPPORTED_VERSIONS="8.2 8.3 8.4 8.5"
 
 scriptDir=$(cd "$(dirname "$0")" && pwd)
 repoDir=$(dirname "$scriptDir")

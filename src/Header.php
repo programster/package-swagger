@@ -1,167 +1,140 @@
 <?php
 
-/*
- * https://swagger.io/specification/#header-object
- */
-
 namespace Programster\Swagger;
 
 use Programster\Swagger\Examples\ExampleMap;
-use Programster\Swagger\Examples\ExternalValueExample;
 use Programster\Swagger\Examples\ValueExample;
+use Programster\Swagger\Exceptions\InvalidValueException;
+use Programster\Swagger\Extensions\ExtensionMap;
+use Programster\Swagger\Internal\JsonObject;
 use Programster\Swagger\Schemas\SchemaInterface;
 
 
-class Header implements \JsonSerializable
+/**
+ * A header, of a response or an encoding, which is given its name by a MappedHeader (or a NamedHeader, in the
+ * components). Create one with createFromSchema() for most headers, or createFromContentMap() for one whose value is
+ * in a format such as JSON.
+ * https://swagger.io/specification/v3/#header-object
+ */
+final readonly class Header implements HeaderInterface
 {
-    private readonly string $m_name;
-    private readonly ?ContentMap $m_content;
-    private readonly ?bool $m_required;
-    private readonly SchemaInterface|Reference|null $m_schema;
-    private readonly ?string $m_description;
-    private readonly ?bool $m_deprecated;
-    private readonly ?bool $m_allowEmptyValue;
-    private readonly ?bool $m_explode;
-    private readonly ?bool $m_allowReserved;
-    private readonly ExternalValueExample|ValueExample|null $m_example;
-    private readonly ?ExampleMap $m_examples;
+    private ?SchemaInterface $m_schema;
+    private ?ContentMap $m_content;
+    private bool $m_required;
+    private ?string $m_description;
+    private bool $m_deprecated;
+    private ?bool $m_explode;
+    private ValueExample|ExampleMap|null $m_example;
+    private ExtensionMap $m_extensions;
 
 
     /**
-     * Create a header. Use createFromSchema() or createFromContentMap() to create one.
+     * @throws InvalidValueException - if the content has more than one media type.
      */
     private function __construct(
-        string $name,
+        ?SchemaInterface $schema,
         ?ContentMap $content,
-        ?bool $required,
-        SchemaInterface|Reference|null $schema,
+        bool $required,
         ?string $description,
-        ?bool $deprecated,
-        ?bool $allowEmptyValue,
+        bool $deprecated,
         ?bool $explode,
-        ?bool $allowReserved,
-        ExternalValueExample|ValueExample|null $example,
-        ?ExampleMap $examples
+        ValueExample|ExampleMap|null $example,
+        ExtensionMap $extensions
     )
     {
-        $this->m_name = $name;
-        $this->m_content = $content;
-        $this->m_required = $required;
+        if ($content !== null && count($content) !== 1)
+        {
+            throw new InvalidValueException("A header's content must have exactly one media type.");
+        }
+
         $this->m_schema = $schema;
+        $this->m_content = ($content === null) ? null : clone $content;
+        $this->m_required = $required;
         $this->m_description = $description;
         $this->m_deprecated = $deprecated;
-        $this->m_allowEmptyValue = $allowEmptyValue;
         $this->m_explode = $explode;
-        $this->m_allowReserved = $allowReserved;
-        $this->m_example = $example;
-        $this->m_examples = $examples;
+        $this->m_example = ($example instanceof ExampleMap) ? clone $example : $example;
+        $this->m_extensions = clone $extensions;
     }
 
 
     /**
-     * Creates a header object with the help of a provided Schema (or reference to a schema).
-     * @param string $name - the name of the header, e.g. "Authorization".
-     * @param SchemaInterface|Reference $schema - the schema for the header's value, or a reference to one.
-     * @param bool|null $required - whether the header is required.
-     * @param string|null $description - a description of the header.
-     * @param bool|null $deprecated - whether the header is deprecated.
-     * @param bool|null $allowEmptyValue - whether the header may be sent with an empty value.
-     * @param bool|null $explode - whether array or object values generate separate values.
-     * @param bool|null $allowReserved - whether the value may contain reserved characters.
-     * @param ExampleMap|ExternalValueExample|ValueExample|null $example - an example, or a map of named examples.
+     * Create a header whose value is described by a schema.
+     *
+     * @param SchemaInterface $schema - the schema of the header's value, or a reference to one.
+     *
+     * @param bool $required - true if the header is always sent.
+     *
+     * @param string|null $description - a description of the header. CommonMark syntax may be used.
+     *
+     * @param bool $deprecated - true if the header is deprecated, and shouldn't be relied on.
+     *
+     * @param bool|null $explode - for an array or object value, whether to send it as separate values.
+     *
+     * @param ValueExample|ExampleMap|null $example - an example of the value, or a map of named examples.
+     *
+     * @param ExtensionMap $extensions - specification extensions ("x-" fields) to add to the header.
+     *
      * @return Header
      */
     public static function createFromSchema(
-        string $name,
-        SchemaInterface|Reference $schema,
-        ?bool $required = null,
+        SchemaInterface $schema,
+        bool $required = false,
         ?string $description = null,
-        ?bool $deprecated = null,
-        ?bool $allowEmptyValue = null,
+        bool $deprecated = false,
         ?bool $explode = null,
-        ?bool $allowReserved = null,
-        ExampleMap|ExternalValueExample|ValueExample|null $example = null
+        ValueExample|ExampleMap|null $example = null,
+        ExtensionMap $extensions = new ExtensionMap()
     ) : Header
     {
-        $isExampleMap = $example instanceof ExampleMap;
-
-        return new Header(
-            name: $name,
-            content: null,
-            required: $required,
-            schema: $schema,
-            description: $description,
-            deprecated: $deprecated,
-            allowEmptyValue: $allowEmptyValue,
-            explode: $explode,
-            allowReserved: $allowReserved,
-            example: $isExampleMap ? null : $example,
-            examples: $isExampleMap ? $example : null
-        );
+        return new Header($schema, null, $required, $description, $deprecated, $explode, $example, $extensions);
     }
 
 
     /**
-     * Creates a header object with the help of a provided ContentMap object.
-     * @param string $name - the name of the header, e.g. "Authorization".
-     * @param ContentMap $content - the content of the header's value.
-     * @param bool|null $required - whether the header is required.
-     * @param string|null $description - a description of the header.
-     * @param bool|null $deprecated - whether the header is deprecated.
-     * @param bool|null $allowEmptyValue - whether the header may be sent with an empty value.
+     * Create a header whose value is in a format such as JSON, described by a media type.
+     *
+     * @param ContentMap $content - the media type of the header's value. It must have exactly one.
+     *
+     * @param bool $required - true if the header is always sent.
+     *
+     * @param string|null $description - a description of the header. CommonMark syntax may be used.
+     *
+     * @param bool $deprecated - true if the header is deprecated, and shouldn't be relied on.
+     *
+     * @param ExtensionMap $extensions - specification extensions ("x-" fields) to add to the header.
+     *
      * @return Header
+     *
+     * @throws InvalidValueException - if the content has more than one media type.
      */
     public static function createFromContentMap(
-        string $name,
         ContentMap $content,
-        ?bool $required = null,
+        bool $required = false,
         ?string $description = null,
-        ?bool $deprecated = null,
-        ?bool $allowEmptyValue = null
+        bool $deprecated = false,
+        ExtensionMap $extensions = new ExtensionMap()
     ) : Header
     {
-        return new Header(
-            name: $name,
-            content: $content,
-            required: $required,
-            schema: null,
-            description: $description,
-            deprecated: $deprecated,
-            allowEmptyValue: $allowEmptyValue,
-            explode: null,
-            allowReserved: null,
-            example: null,
-            examples: null,
-        );
+        return new Header(null, $content, $required, $description, $deprecated, null, null, $extensions);
     }
 
 
-    public function toArray()
+    public function jsonSerialize() : \stdClass
     {
-        $optionalFields = [
-            'required' => $this->m_required,
+        $isExampleMap = $this->m_example instanceof ExampleMap;
+
+        $fields = [
             'description' => $this->m_description,
-            'deprecated' => $this->m_deprecated,
-            'allowEmptyValue' => $this->m_allowEmptyValue,
+            'required' => $this->m_required ? true : null,
+            'deprecated' => $this->m_deprecated ? true : null,
+            'explode' => $this->m_explode,
             'schema' => $this->m_schema,
             'content' => $this->m_content,
-            'explode' => $this->m_explode,
-            'allowReserved' => $this->m_allowReserved,
-            'example' => $this->m_example,
-            'examples' => $this->m_examples,
+            'example' => $isExampleMap ? null : $this->m_example,
+            'examples' => $isExampleMap ? $this->m_example : null,
         ];
 
-        $isProvided = function (mixed $value) : bool { return $value !== null; };
-        return array_filter($optionalFields, $isProvided);
+        return JsonObject::create($fields, $this->m_extensions);
     }
-
-
-    public function jsonSerialize(): mixed
-    {
-        return $this->toArray();
-    }
-
-
-    # Accessors
-    public function getName() : string { return $this->m_name; }
 }

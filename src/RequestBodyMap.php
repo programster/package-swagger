@@ -1,65 +1,54 @@
 <?php
 
-/*
- * https://swagger.io/specification/#components-object
- */
-
 namespace Programster\Swagger;
 
+use Programster\Swagger\Exceptions\DuplicateKeyException;
+use Programster\Swagger\Internal\AbstractKeyedCollection;
 
-class RequestBodyMap implements \JsonSerializable
+
+/**
+ * The request bodies in the components, each under its name.
+ */
+final class RequestBodyMap extends AbstractKeyedCollection
 {
-    private array $m_map;
-
-
     /**
-     * @param string $name - the unique name for the request body.
-     * @param RequestBody|Reference $responseBody - the request body, or a reference to one.
+     * @param NamedRequestBody ...$requestBodies - the request bodies.
+     * @throws DuplicateKeyException - if two of them have the same name.
      */
-    public function __construct(string $name, RequestBody|Reference $responseBody)
+    public function __construct(NamedRequestBody ...$requestBodies)
     {
-        $this->m_map = [$name => $responseBody];
+        parent::__construct($requestBodies);
     }
 
 
-    /**
-     * Add another request body.
-     * @param string $name - the unique name for the request body.
-     * @param RequestBody|Reference $responseBody - the request body, or a reference to one.
-     * @return void
-     * @throws \Exception - if there's already a request body with that name.
-     */
-    public function add(string $name, RequestBody|Reference $responseBody)
+    public function getType() : string
     {
-        if (isset($this->m_map[$name]))
-        {
-            throw new \Exception("{$name} already taken in " . __CLASS__);
-        }
-
-        $this->m_map[$name] = $responseBody;
+        return NamedRequestBody::class;
     }
 
 
-    /**
-     * This is the same as add, except that it won't throw an exception if the key is already taken.
-     * @param string $name - the unique name for the request body.
-     * @param RequestBody|Reference $responseBody - the request body, or a reference to one.
-     * @return void
-     */
-    public function addOrReplace(string $name, RequestBody|Reference $responseBody)
+    public function jsonSerialize() : \stdClass
     {
-        $this->m_map[$name] = $responseBody;
+        return $this->toJsonObject();
     }
 
 
-    public function toArray() : array
+    protected function getKeyOf(mixed $item) : string
     {
-        return $this->m_map;
+        /** @var NamedRequestBody $item */
+        return $item->getName();
     }
 
 
-    public function jsonSerialize(): mixed
+    protected function describeKey(string $key) : string
     {
-        return $this->toArray();
+        return "a request body named \"{$key}\"";
+    }
+
+
+    protected function getJsonValueOf(mixed $item) : mixed
+    {
+        /** @var NamedRequestBody $item */
+        return $item->getRequestBody();
     }
 }

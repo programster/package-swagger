@@ -1,54 +1,47 @@
 <?php
 
-/*
- * A collection that can only take Operations
- */
-
 namespace Programster\Swagger;
 
+use Programster\Swagger\Exceptions\DuplicateKeyException;
+use Programster\Swagger\Internal\AbstractKeyedCollection;
 
-final class OperationCollection extends \ArrayObject implements \JsonSerializable
+
+/**
+ * The operations on a path, each under its method. There can only be one for each method.
+ */
+final class OperationCollection extends AbstractKeyedCollection
 {
+    /**
+     * @param Operation ...$operations - the operations.
+     * @throws DuplicateKeyException - if two of them have the same method.
+     */
     public function __construct(Operation ...$operations)
     {
         parent::__construct($operations);
     }
 
 
-    /**
-     * @throws \Exception - if the value isn't an Operation.
-     */
-    public function append(mixed $value) : void
+    public function getType() : string
     {
-        if ($value instanceof Operation)
-        {
-            parent::append($value);
-        }
-        else
-        {
-            throw new \Exception("Cannot append non Operation to a " . __CLASS__);
-        }
+        return Operation::class;
     }
 
 
-    /**
-     * @throws \Exception - if the value isn't an Operation.
-     */
-    public function offsetSet(mixed $index, mixed $newval) : void
+    public function jsonSerialize() : \stdClass
     {
-        if ($newval instanceof Operation)
-        {
-            parent::offsetSet($index, $newval);
-        }
-        else
-        {
-            throw new \Exception("Cannot add a non Operation value to a " . __CLASS__);
-        }
+        return $this->toJsonObject();
     }
 
 
-    public function jsonSerialize() : array
+    protected function getKeyOf(mixed $item) : string
     {
-        return $this->getArrayCopy();
+        /** @var Operation $item */
+        return $item->getMethod()->value;
+    }
+
+
+    protected function describeKey(string $key) : string
+    {
+        return "a " . strtoupper($key) . " operation";
     }
 }

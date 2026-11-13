@@ -1,43 +1,54 @@
 <?php
 
-/*
- * A map of named parameters. This is put within the components object, and allows parameters to be re-used
- * based on their name in this map.
- * https://swagger.io/specification/#components-object
- */
-
 namespace Programster\Swagger;
 
+use Programster\Swagger\Exceptions\DuplicateKeyException;
+use Programster\Swagger\Internal\AbstractKeyedCollection;
 
-class ParameterMap implements \JsonSerializable
+
+/**
+ * The parameters in the components, each under its name.
+ */
+final class ParameterMap extends AbstractKeyedCollection
 {
-    private readonly array $m_map;
-
-
     /**
-     * @param NamedParameter ...$namedParameters - the parameters, each of which must have a unique name.
-     * @throws \Exception - if two of the parameters have the same name.
+     * @param NamedParameter ...$parameters - the parameters.
+     * @throws DuplicateKeyException - if two of them have the same name.
      */
-    public function __construct(NamedParameter ...$namedParameters)
+    public function __construct(NamedParameter ...$parameters)
     {
-        $map = [];
-
-        foreach ($namedParameters as $namedParameter)
-        {
-            if (isset($map[$namedParameter->getName()]))
-            {
-                throw new \Exception("Parameter name clash: " . $namedParameter->getName());
-            }
-
-            $map[$namedParameter->getName()] = $namedParameter->getParameter();
-        }
-
-        $this->m_map = $map;
+        parent::__construct($parameters);
     }
 
 
-    public function jsonSerialize(): mixed
+    public function getType() : string
     {
-        return $this->m_map;
+        return NamedParameter::class;
+    }
+
+
+    public function jsonSerialize() : \stdClass
+    {
+        return $this->toJsonObject();
+    }
+
+
+    protected function getKeyOf(mixed $item) : string
+    {
+        /** @var NamedParameter $item */
+        return $item->getName();
+    }
+
+
+    protected function describeKey(string $key) : string
+    {
+        return "a parameter named \"{$key}\"";
+    }
+
+
+    protected function getJsonValueOf(mixed $item) : mixed
+    {
+        /** @var NamedParameter $item */
+        return $item->getParameter();
     }
 }

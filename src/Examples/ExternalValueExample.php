@@ -1,40 +1,32 @@
 <?php
 
-/*
- * https://swagger.io/specification/#example-object
- */
-
 namespace Programster\Swagger\Examples;
 
+use Programster\Swagger\Exceptions\InvalidValueException;
+use Programster\Swagger\Internal\Validator;
 
-class ExternalValueExample implements \JsonSerializable
+
+/**
+ * An example that is somewhere else, at a URL, e.g. for an example that can't easily be written in JSON (such as an
+ * image). OpenAPI only allows these in a map of named examples (an ExampleMap), not as a single example.
+ * https://swagger.io/specification/v3/#example-object
+ */
+final readonly class ExternalValueExample
 {
-    private readonly string $m_externalValue;
+    private string $m_url;
 
 
     /**
-     * @param string $externalValue - the URL of the example.
-     * @throws \Exception - if $externalValue isn't a valid URL.
+     * @param string $url - the URL of the example.
+     * @throws InvalidValueException - if $url isn't a URL.
      */
-    public function __construct(string $externalValue)
+    public function __construct(string $url)
     {
-        if (filter_var($externalValue, FILTER_VALIDATE_URL) === false)
-        {
-            throw new \Exception("externalValue needs to be a valid URL.");
-        }
-
-        $this->m_externalValue = $externalValue;
+        Validator::assertUrl($url, "The external example's URL");
+        $this->m_url = $url;
     }
 
 
-    public function jsonSerialize(): mixed
-    {
-        return $this->toArray();
-    }
-
-
-    public function toArray() : array
-    {
-        return ['externalValue' => $this->m_externalValue];
-    }
+    # Accessors
+    public function getUrl() : string { return $this->m_url; }
 }

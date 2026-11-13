@@ -2,36 +2,53 @@
 
 namespace Programster\Swagger\OAuth;
 
+use Programster\Swagger\Exceptions\DuplicateKeyException;
+use Programster\Swagger\Internal\AbstractKeyedCollection;
 
-class ScopeMap implements \JsonSerializable
+
+/**
+ * The scopes that an OAuth flow offers, each under its name. It may be empty.
+ */
+final class ScopeMap extends AbstractKeyedCollection
 {
-    private readonly array $m_map;
-
-
     /**
-     * @param Scope ...$scopes - the scopes, each of which must have a unique name.
-     * @throws \Exception - if two of the scopes have the same name.
+     * @param Scope ...$scopes - the scopes.
+     * @throws DuplicateKeyException - if two of them have the same name.
      */
     public function __construct(Scope ...$scopes)
     {
-        $mapping = [];
-
-        foreach ($scopes as $scope)
-        {
-            if (isset($mapping[$scope->getName()]))
-            {
-                throw new \Exception("Duplicate scope name: {$scope->getName()} when creating " . __CLASS__);
-            }
-
-            $mapping[$scope->getName()] = $scope->getDescription();
-        }
-
-        $this->m_map = $mapping;
+        parent::__construct($scopes);
     }
 
 
-    public function jsonSerialize(): mixed
+    public function getType() : string
     {
-        return $this->m_map;
+        return Scope::class;
+    }
+
+
+    public function jsonSerialize() : \stdClass
+    {
+        return $this->toJsonObject();
+    }
+
+
+    protected function getKeyOf(mixed $item) : string
+    {
+        /** @var Scope $item */
+        return $item->getName();
+    }
+
+
+    protected function describeKey(string $key) : string
+    {
+        return "a scope named \"{$key}\"";
+    }
+
+
+    protected function getJsonValueOf(mixed $item) : mixed
+    {
+        /** @var Scope $item */
+        return $item->getDescription();
     }
 }

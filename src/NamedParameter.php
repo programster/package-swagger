@@ -1,37 +1,48 @@
 <?php
 
-/*
- * https://swagger.io/specification/#responses-object
- */
-
 namespace Programster\Swagger;
 
+use Programster\Swagger\Exceptions\InvalidValueException;
+use Programster\Swagger\Internal\Validator;
+use Programster\Swagger\References\ParameterReference;
 
-class NamedParameter
+
+/**
+ * A parameter with a name, to put in the components (in a ParameterMap).
+ */
+final readonly class NamedParameter
 {
-    private readonly string $m_name;
-    private readonly Parameter|Reference $m_parameter;
+    private string $m_name;
+    private ParameterInterface $m_parameter;
 
 
     /**
-     * Create a uniquely named parameter. Every named parameter needs to have a unique name. E.g. if you have a
-     * "first_name" parameter for both POST /users and POST /clients, then you may need to set names like
-     * "users_first_name" and "clients_first_name" respectively.
+     * @param string $name - the name of the parameter, e.g. "userId". It can only contain letters, numbers, dots,
+     * dashes and underscores.
      *
-     * @param string $name - a name to remember the parameter by. This is not the parameter name that gets sent in a
-     * request, but a UNIQUE name to remember this parameter by in this document, so that it may be re-used through
-     * referencing elsewhere.
+     * @param ParameterInterface $parameter - the parameter, or a reference to one.
      *
-     * @param Parameter|Reference $parameter - the parameter that is being uniquely named.
+     * @throws InvalidValueException - if the name isn't a valid component name.
      */
-    public function __construct(string $name, Parameter|Reference $parameter)
+    public function __construct(string $name, ParameterInterface $parameter)
     {
+        Validator::assertComponentName($name, "The parameter's name");
         $this->m_name = $name;
         $this->m_parameter = $parameter;
     }
 
 
+    /**
+     * Create a reference to this parameter, for using it elsewhere, once it is in the components.
+     * @return ParameterReference
+     */
+    public function createReference() : ParameterReference
+    {
+        return ParameterReference::createToComponent($this->m_name);
+    }
+
+
     # Accessors
     public function getName() : string { return $this->m_name; }
-    public function getParameter() : Parameter|Reference { return $this->m_parameter; }
+    public function getParameter() : ParameterInterface { return $this->m_parameter; }
 }

@@ -2,65 +2,44 @@
 
 namespace Programster\Swagger\Security;
 
+use Programster\Swagger\Exceptions\DuplicateKeyException;
 
-class SecurityRequirement implements \JsonSerializable
+
+/**
+ * A set of security schemes which are all needed at once, e.g. an API key and OAuth2. Create one with
+ * NamedSecurityScheme::createSecurityRequirement() when only one scheme is needed. To allow any one of several
+ * requirements instead, put each in a SecurityRequirementCollection.
+ * https://swagger.io/specification/v3/#security-requirement-object
+ */
+final readonly class SecurityRequirement implements \JsonSerializable
 {
-    private readonly string $m_schemeName;
-    private readonly array $m_scopes;
-    private array $m_arrayForm;
+    private RequiredSchemeCollection $m_schemes;
 
 
     /**
-     * Create a security requirement object.
-     * https://swagger.io/specification/#security-requirement-object
+     * @param RequiredScheme ...$schemes - the schemes that are all needed. With none, the requirement is met without
+     * any security, which makes security optional when it's one of several requirements.
      *
-     * @param string $schemeName - the unique name (ID) of the security scheme within the components object.
-     *
-     * @param string[] $scopes - any scopes that need to be utilized to run the operation.
-     *
-     * getSchemeName() and getScopes() return the scheme this is created with, not any that are added to it later with
-     * add().
+     * @throws DuplicateKeyException - if the same scheme is given twice.
      */
-    public function __construct(string $schemeName, array $scopes)
+    public function __construct(RequiredScheme ...$schemes)
     {
-        $this->m_schemeName = $schemeName;
-        $this->m_scopes = $scopes;
-        $this->m_arrayForm = [$schemeName => $scopes];
+        $this->m_schemes = new RequiredSchemeCollection(...$schemes);
     }
 
 
     /**
-     * Add another scheme to this requirement.
-     * WARNING: This will require all of these schemes to be satisfied. If you want to specify that *either* scheme
-     * can be satisfied to pass security, then you need to create separate SecurityRequirement objects and pass them to
-     * the SecurityRequirementCollection.
-     *
-     * @param string $schemeName - the unique name (ID) of the security scheme within the components object.
-     *
-     * @param string[] $scopes - any scopes that need to be utilized to run the operation.
-     *
-     * @return void
-     *
-     * @throws \Exception - if this requirement already has a scheme with that name.
+     * Get the names of the security schemes that this requirement needs.
+     * @return string[]
      */
-    public function add(string $schemeName, array $scopes)
+    public function getSchemeNames() : array
     {
-        if (isset($this->m_arrayForm[$schemeName]))
-        {
-            throw new \Exception("Duplicate scheme name in SecurityRequirement: {$schemeName}");
-        }
-
-        $this->m_arrayForm[$schemeName] = $scopes;
+        return $this->m_schemes->getKeys();
     }
 
 
-    public function jsonSerialize(): mixed
+    public function jsonSerialize() : \stdClass
     {
-        return $this->m_arrayForm;
+        return $this->m_schemes->jsonSerialize();
     }
-
-
-    # Accessors
-    public function getSchemeName() : string { return $this->m_schemeName; }
-    public function getScopes() : array { return $this->m_scopes; }
 }

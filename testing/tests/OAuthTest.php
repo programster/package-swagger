@@ -5,10 +5,11 @@
  * $smoke.
  */
 
+use Programster\Swagger\Exceptions\DuplicateKeyException;
+use Programster\Swagger\Exceptions\InvalidValueException;
 use Programster\Swagger\OAuth\AuthorizationCodeFlow;
 use Programster\Swagger\OAuth\ClientCredentialsFlow;
 use Programster\Swagger\OAuth\ImplicitFlow;
-use Programster\Swagger\OAuth\OauthFlow;
 use Programster\Swagger\OAuth\OauthFlows;
 use Programster\Swagger\OAuth\PasswordFlow;
 use Programster\Swagger\OAuth\Scope;
@@ -18,140 +19,100 @@ use Programster\Swagger\Testing\SmokeTest;
 /** @var SmokeTest $smoke */
 
 $createScopes = function () : ScopeMap {
-    return new ScopeMap(new Scope("read", "Read access."), new Scope("write", "Write access."));
+    return new ScopeMap(new Scope("read", "Read access."));
 };
 
 $testScopes = function () use ($createScopes) : void {
-    // The getters used to call themselves forever.
     $scope = new Scope("read", "Read access.");
-    assert($scope->getName() === "read");
-    assert($scope->getDescription() === "Read access.");
+    assert($scope->getName() === "read" && $scope->getDescription() === "Read access.");
+    SmokeTest::assertJson('{"read":"Read access."}', $createScopes());
 
-    // This used to call a toArray() method that didn't exist.
-    SmokeTest::assertJson('{"read":"Read access.","write":"Write access."}', $createScopes());
+    // A flow may offer no scopes, which is output as {}.
+    SmokeTest::assertJson('{}', new ScopeMap());
 
     $createWithDuplicateNames = function () : void {
         new ScopeMap(new Scope("read", "Read."), new Scope("read", "Read again."));
     };
 
-    SmokeTest::expectException(\Exception::class, $createWithDuplicateNames, "Duplicate scope name: read");
+    SmokeTest::expectException(DuplicateKeyException::class, $createWithDuplicateNames, 'a scope named "read"');
 };
 
 $smoke->run("Scope and ScopeMap", $testScopes);
 
-$testFlowsWithTokenUrl = function () use ($createScopes) : void {
-    $flowClasses = [AuthorizationCodeFlow::class, ClientCredentialsFlow::class, PasswordFlow::class];
+$testFlows = function () use ($createScopes) : void {
+    $auth = "https://example.com/auth";
+    $token = "https://example.com/token";
+    $refresh = "https://example.com/refresh";
+    $scopes = '"scopes":{"read":"Read access."}';
 
-    foreach ($flowClasses as $flowClass)
+    // Each flow only has the URLs that OpenAPI gives it.
+    $implicit = new ImplicitFlow($auth, $createScopes(), $refresh);
+
+    SmokeTest::assertJson(
+        '{"authorizationUrl":"' . $auth . '","refreshUrl":"' . $refresh . '",' . $scopes . '}',
+        $implicit
+    );
+
+    $password = new PasswordFlow($token, $createScopes());
+    SmokeTest::assertJson('{"tokenUrl":"' . $token . '",' . $scopes . '}', $password);
+
+    $clientCredentials = new ClientCredentialsFlow($token, $createScopes());
+    SmokeTest::assertJson('{"tokenUrl":"' . $token . '",' . $scopes . '}', $clientCredentials);
+
+    $authorizationCode = new AuthorizationCodeFlow($auth, $token, $createScopes());
+
+    SmokeTest::assertJson(
+        '{"authorizationUrl":"' . $auth . '","tokenUrl":"' . $token . '",' . $scopes . '}',
+        $authorizationCode
+    );
+
+    assert($authorizationCode->getScopes()->hasKey("read"));
+
+    $createImplicitWithBadUrl = function () use ($createScopes) : void {
+        new ImplicitFlow("auth", $createScopes());
+    };
+
+    $createPasswordWithBadUrl = function () use ($createScopes) : void {
+        new PasswordFlow("token", $createScopes());
+    };
+
+    $createClientCredentialsWithBadRefreshUrl = function () use ($createScopes, $token) : void {
+        new ClientCredentialsFlow($token, $createScopes(), "refresh");
+    };
+
+    $createAuthorizationCodeWithBadUrl = function () use ($createScopes, $auth) : void {
+        new AuthorizationCodeFlow($auth, "token", $createScopes());
+    };
+
+    $createWithBadUrls = [
+        $createImplicitWithBadUrl,
+        $createPasswordWithBadUrl,
+        $createClientCredentialsWithBadRefreshUrl,
+        $createAuthorizationCodeWithBadUrl,
+    ];
+
+    foreach ($createWithBadUrls as $createWithBadUrl)
     {
-        $flow = new $flowClass("https://example.com/auth", "https://example.com/token", $createScopes());
-
-        $expected = <<<'JSON'
-            {
-                "authorizationUrl": "https://example.com/auth",
-                "tokenUrl": "https://example.com/token",
-                "scopes": {"read": "Read access.", "write": "Write access."}
-            }
-            JSON;
-
-        SmokeTest::assertJson($expected, $flow);
-
-        $withRefresh = new $flowClass(
-            "https://example.com/auth",
-            "https://example.com/token",
-            $createScopes(),
-            "https://example.com/refresh"
-        );
-
-        assert($withRefresh->jsonSerialize()['refreshUrl'] === "https://example.com/refresh", $flowClass);
-
-        $badUrls = [
-            ["not a url", "https://example.com/token", null],
-            ["https://example.com/auth", "not a url", null],
-            ["https://example.com/auth", "https://example.com/token", "not a url"],
-        ];
-
-        foreach ($badUrls as [$authorizationUrl, $tokenUrl, $refreshUrl])
-        {
-            $createWithBadUrl = function () use ($flowClass, $authorizationUrl, $tokenUrl, $refreshUrl) : void {
-                new $flowClass($authorizationUrl, $tokenUrl, new ScopeMap(), $refreshUrl);
-            };
-
-            SmokeTest::expectException(\Exception::class, $createWithBadUrl, "not a url is not a valid URL");
-        }
+        SmokeTest::expectException(InvalidValueException::class, $createWithBadUrl, "must be a URL");
     }
 };
 
-$smoke->run("AuthorizationCodeFlow, ClientCredentialsFlow and PasswordFlow", $testFlowsWithTokenUrl);
-
-$testImplicitFlow = function () use ($createScopes) : void {
-    // This used to expect a ScopeMap class that doesn't exist, so no ScopeMap could be passed to it.
-    $flow = new ImplicitFlow("https://example.com/auth", $createScopes(), "https://example.com/refresh");
-
-    $expected = <<<'JSON'
-        {
-            "authorizationUrl": "https://example.com/auth",
-            "scopes": {"read": "Read access.", "write": "Write access."},
-            "refreshUrl": "https://example.com/refresh"
-        }
-        JSON;
-
-    SmokeTest::assertJson($expected, $flow);
-
-    $createWithBadUrl = function () : void {
-        new ImplicitFlow("not a url", new ScopeMap());
-    };
-
-    SmokeTest::expectException(\Exception::class, $createWithBadUrl, "not a url is not a valid URL");
-
-    $createWithBadRefreshUrl = function () : void {
-        new ImplicitFlow("https://example.com/auth", new ScopeMap(), "not a url");
-    };
-
-    SmokeTest::expectException(\Exception::class, $createWithBadRefreshUrl, "not a url is not a valid URL");
-};
-
-$smoke->run("ImplicitFlow", $testImplicitFlow);
-
-$testOauthFlow = function () : void {
-    $authUrl = "https://example.com/auth";
-    $tokenUrl = "https://example.com/token";
-    $flow = new OauthFlow($authUrl, $tokenUrl, null, "read");
-
-    $expected = '{"authorizationUrl":"https://example.com/auth","tokenUrl":"https://example.com/token",'
-        . '"scopes":"read"}';
-
-    SmokeTest::assertJson($expected, $flow);
-
-    $withRefresh = new OauthFlow($authUrl, $tokenUrl, "https://example.com/refresh", "read");
-    assert($withRefresh->jsonSerialize()['refreshUrl'] === "https://example.com/refresh");
-};
-
-$smoke->run("OauthFlow", $testOauthFlow);
+$smoke->run("OAuth flows", $testFlows);
 
 $testOauthFlows = function () use ($createScopes) : void {
-    $authUrl = "https://example.com/auth";
-    $tokenUrl = "https://example.com/token";
-    $implicit = new ImplicitFlow($authUrl, $createScopes());
-    $password = new PasswordFlow($authUrl, $tokenUrl, $createScopes());
-    $clientCredentials = new ClientCredentialsFlow($authUrl, $tokenUrl, $createScopes());
-    $authorizationCode = new AuthorizationCodeFlow($authUrl, $tokenUrl, $createScopes());
+    $implicit = new ImplicitFlow("https://example.com/auth", new ScopeMap(new Scope("admin", "Everything.")));
+    $password = new PasswordFlow("https://example.com/token", $createScopes());
+    $flows = new OauthFlows(implicit: $implicit, password: $password);
+    assert(array_keys(get_object_vars($flows->jsonSerialize())) === ["implicit", "password"]);
 
-    // Every flow used to be output under the "clientCredentials" key, so only the last one given was kept.
-    $flows = new OauthFlows($implicit, $password, $clientCredentials, $authorizationCode);
-    $flowsArray = json_decode(json_encode($flows), true);
-    assert(array_keys($flowsArray) === ["implicit", "password", "clientCredentials", "authorizationCode"]);
-    assert($flowsArray['implicit'] === json_decode(json_encode($implicit), true));
-    assert($flowsArray['authorizationCode'] === json_decode(json_encode($authorizationCode), true));
-
-    $onlyPassword = new OauthFlows(password: $password);
-    assert(array_keys($onlyPassword->jsonSerialize()) === ["password"]);
+    // A scope offered by any of the flows can be required.
+    assert($flows->hasScope("admin") && $flows->hasScope("read") && !$flows->hasScope("write"));
 
     $createWithoutFlows = function () : void {
         new OauthFlows();
     };
 
-    SmokeTest::expectException(\Exception::class, $createWithoutFlows, "at least one of the types of flows");
+    SmokeTest::expectException(InvalidValueException::class, $createWithoutFlows, "needs at least one flow");
 };
 
 $smoke->run("OauthFlows", $testOauthFlows);

@@ -1,61 +1,60 @@
 <?php
 
-/*
- * A collection that can only take Paths
- */
-
 namespace Programster\Swagger;
 
+use Programster\Swagger\Exceptions\DuplicateKeyException;
+use Programster\Swagger\Internal\AbstractKeyedCollection;
 
-final class PathCollection extends \ArrayObject implements \JsonSerializable
+
+/**
+ * The paths of the API. Two paths that only differ in the names of their variables (e.g. "/users/{id}" and
+ * "/users/{name}") are the same path, so there can't be both.
+ * https://swagger.io/specification/v3/#paths-object
+ */
+final class PathCollection extends AbstractKeyedCollection
 {
+    /**
+     * @param Path ...$paths - the paths.
+     * @throws DuplicateKeyException - if two of them are the same path.
+     */
     public function __construct(Path ...$paths)
     {
         parent::__construct($paths);
     }
 
 
-    /**
-     * Append a path to this array object.
-     * @param mixed $value - the path to append.
-     * @return void
-     * @throws \Exception - if the value passed is not an instance of a Path
-     */
-    public function append(mixed $value) : void
+    public function getType() : string
     {
-        if ($value instanceof Path)
+        return Path::class;
+    }
+
+
+    public function jsonSerialize() : \stdClass
+    {
+        $object = new \stdClass();
+
+        foreach ($this->data as $path)
         {
-            parent::append($value);
+            /** @var Path $path */
+            $object->{$path->getRelativePath()} = $path->getItem();
         }
-        else
-        {
-            throw new \Exception("Cannot append non Path to a " . __CLASS__);
-        }
+
+        return $object;
     }
 
 
     /**
-     * Override a specific path.
-     * @param mixed $index - the index to set the path at.
-     * @param mixed $newval - the path to set.
-     * @return void
-     * @throws \Exception - if the new value passed is not of a Path type.
+     * Get a path's key, which has the names of its variables taken out, as they don't make it a different path.
      */
-    public function offsetSet(mixed $index, mixed $newval) : void
+    protected function getKeyOf(mixed $item) : string
     {
-        if ($newval instanceof Path)
-        {
-            parent::offsetSet($index, $newval);
-        }
-        else
-        {
-            throw new \Exception("Cannot add a non Path value to a " . __CLASS__);
-        }
+        /** @var Path $item */
+        return preg_replace('/\{[^}]*\}/', '{}', $item->getRelativePath());
     }
 
 
-    public function jsonSerialize() : array
+    protected function describeKey(string $key) : string
     {
-        return $this->getArrayCopy();
+        return "a path that matches \"{$key}\" (paths that only differ in the names of their variables are the same)";
     }
 }

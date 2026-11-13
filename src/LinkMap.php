@@ -2,56 +2,53 @@
 
 namespace Programster\Swagger;
 
+use Programster\Swagger\Exceptions\DuplicateKeyException;
+use Programster\Swagger\Internal\AbstractKeyedCollection;
 
-class LinkMap implements \JsonSerializable
+
+/**
+ * A map of named links, for a response or the components.
+ */
+final class LinkMap extends AbstractKeyedCollection
 {
-    private array $m_map;
-
-
-    public function __construct(string $key, Link|Reference $linkOrReference)
-    {
-        $this->m_map = [$key => $linkOrReference];
-    }
-
-
     /**
-     * Add another link.
-     * @param string $key - the unique name for the link.
-     * @param Link|Reference $linkOrReference - the link, or a reference to one.
-     * @return void
-     * @throws \Exception - if there's already a link with that name.
+     * @param NamedLink ...$links - the links.
+     * @throws DuplicateKeyException - if two of them have the same name.
      */
-    public function add(string $key, Link|Reference $linkOrReference)
+    public function __construct(NamedLink ...$links)
     {
-        if (isset($this->m_map[$key]))
-        {
-            throw new \Exception("{$key} already taken in " . __CLASS__);
-        }
-
-        $this->m_map[$key] = $linkOrReference;
+        parent::__construct($links);
     }
 
 
-    /**
-     * This is the same as add, except that it won't throw an exception if the key is already taken.
-     * @param string $key - the unique name for the link.
-     * @param Link|Reference $linkOrReference - the link, or a reference to one.
-     * @return void
-     */
-    public function addOrReplace(string $key, Link|Reference $linkOrReference)
+    public function getType() : string
     {
-        $this->m_map[$key] = $linkOrReference;
+        return NamedLink::class;
     }
 
 
-    public function toArray() : array
+    public function jsonSerialize() : \stdClass
     {
-        return $this->m_map;
+        return $this->toJsonObject();
     }
 
 
-    public function jsonSerialize(): mixed
+    protected function getKeyOf(mixed $item) : string
     {
-        return $this->toArray();
+        /** @var NamedLink $item */
+        return $item->getName();
+    }
+
+
+    protected function describeKey(string $key) : string
+    {
+        return "a link named \"{$key}\"";
+    }
+
+
+    protected function getJsonValueOf(mixed $item) : mixed
+    {
+        /** @var NamedLink $item */
+        return $item->getLink();
     }
 }

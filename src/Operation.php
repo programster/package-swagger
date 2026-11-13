@@ -1,118 +1,164 @@
 <?php
 
-/*
- * https://swagger.io/specification/#operation-object
- */
-
 namespace Programster\Swagger;
 
-use Programster\Swagger\Security\SecurityRequirement;
+use Programster\Swagger\Exceptions\InvalidValueException;
+use Programster\Swagger\Extensions\ExtensionMap;
+use Programster\Swagger\Internal\JsonObject;
 use Programster\Swagger\Security\SecurityRequirementCollection;
 
-class Operation implements \JsonSerializable
+
+/**
+ * An operation on a path, e.g. GET /users.
+ * https://swagger.io/specification/v3/#operation-object
+ */
+final readonly class Operation implements \JsonSerializable
 {
-    private readonly Method $m_method;
-    private readonly ResponseCollection $m_responses;
-    private readonly ?string $m_summary;
-    private readonly ?string $m_description;
-    private readonly ?ParameterCollection $m_parameters;
-    private readonly RequestBody|Reference|null $m_requestBody;
-    private readonly ?array $m_tags;
-    private readonly ?string $m_operationId;
-    private readonly ?string $m_externalDocs;
-    private readonly ?Callbacks $m_callbacks;
-    private readonly ?bool $m_deprecated;
-    private readonly SecurityRequirementCollection|SecurityRequirement|null $m_security;
-    private readonly ?ServerCollection $m_servers;
+    private Method $m_method;
+    private ResponseCollection $m_responses;
+    private ?string $m_summary;
+    private ?string $m_description;
+    private ParameterCollection $m_parameters;
+    private ?RequestBodyInterface $m_requestBody;
+    private array $m_tags;
+    private ?string $m_operationId;
+    private ?ExternalDocumentation $m_externalDocs;
+    private CallbackMap $m_callbacks;
+    private bool $m_deprecated;
+    private ?SecurityRequirementCollection $m_security;
+    private ServerCollection $m_servers;
+    private ExtensionMap $m_extensions;
 
 
     /**
-     * https://swagger.io/specification/#operation-object
      * @param Method $method - the HTTP method, e.g. Method::GET.
-     * @param ResponseCollection $responses - the possible responses. There must be at least one.
+     *
+     * @param ResponseCollection $responses - the responses the operation can give. There must be at least one.
+     *
      * @param string|null $summary - a short summary of what the operation does.
-     * @param string|null $description - a longer description of what the operation does.
-     * @param ParameterCollection|null $parameters - the parameters that the operation takes.
-     * @param RequestBody|Reference|null $requestBody - the request body, or a reference to one.
-     * @param string[]|null $tags - the names of the tags to group the operation under.
-     * @param string|null $operationId - a unique ID for the operation.
-     * @param string|null $externalDocs - a link to external documentation for the operation.
-     * @param Callbacks|null $callbacks - the callbacks for the operation.
-     * @param bool|null $deprecated - whether the operation is deprecated.
-     * @param SecurityRequirementCollection|SecurityRequirement|null $security - the security for the operation.
-     * @param ServerCollection|null $servers - the servers that handle the operation.
-     * @throws \Exception - if there are no responses, or one of the tags isn't a string.
+     *
+     * @param string|null $description - a longer description of what the operation does. CommonMark syntax may be
+     * used.
+     *
+     * @param ParameterCollection $parameters - the parameters the operation takes, as well as the path's.
+     *
+     * @param RequestBodyInterface|null $requestBody - the body of the request, or a reference to one. GET, HEAD,
+     * DELETE and TRACE operations can't have one, as HTTP doesn't define what a body means for them.
+     *
+     * @param string[] $tags - the names of the tags to group the operation under, e.g. ["users"].
+     *
+     * @param string|null $operationId - a unique ID for the operation, e.g. "getUser", which links can use to point
+     * at it. It must be unique within the document.
+     *
+     * @param ExternalDocumentation|null $externalDocs - documentation elsewhere about the operation.
+     *
+     * @param CallbackMap $callbacks - requests that the API may make back to the client because of this operation.
+     *
+     * @param bool $deprecated - true if the operation is deprecated, and shouldn't be used.
+     *
+     * @param SecurityRequirementCollection|null $security - the security for this operation, instead of the
+     * document's. Null (the default) uses the document's. An empty collection makes the operation public.
+     *
+     * @param ServerCollection $servers - the servers this operation is on, instead of the path's or document's.
+     *
+     * @param ExtensionMap $extensions - specification extensions ("x-" fields) to add to the operation.
+     *
+     * @throws InvalidValueException - if there are no responses, a tag isn't a string, or the operation can't have a
+     * request body.
      */
     public function __construct(
         Method $method,
         ResponseCollection $responses,
         ?string $summary = null,
         ?string $description = null,
-        ?ParameterCollection $parameters = null,
-        RequestBody|Reference|null $requestBody = null,
-        ?array $tags = null,
+        ParameterCollection $parameters = new ParameterCollection(),
+        ?RequestBodyInterface $requestBody = null,
+        array $tags = [],
         ?string $operationId = null,
-        ?string $externalDocs = null,
-        ?Callbacks $callbacks = null,
-        ?bool $deprecated = null,
-        SecurityRequirementCollection|SecurityRequirement|null $security = null,
-        ?ServerCollection $servers = null
+        ?ExternalDocumentation $externalDocs = null,
+        CallbackMap $callbacks = new CallbackMap(),
+        bool $deprecated = false,
+        ?SecurityRequirementCollection $security = null,
+        ServerCollection $servers = new ServerCollection(),
+        ExtensionMap $extensions = new ExtensionMap()
     )
     {
-        if (count($responses->toArray()) === 0)
+        $methodName = strtoupper($method->value);
+
+        if ($responses->isEmpty())
         {
-            throw new \Exception("Paths need at least one response");
+            throw new InvalidValueException("The {$methodName} operation needs at least one response.");
         }
 
-        if ($tags !== null)
+        $methodsWithoutBodies = [Method::GET, Method::HEAD, Method::DELETE, Method::TRACE];
+
+        if ($requestBody !== null && in_array($method, $methodsWithoutBodies, true))
         {
-            foreach ($tags as $tag)
+            $message = "A {$methodName} operation can't have a request body, as HTTP doesn't define what one means "
+                . "for it.";
+
+            throw new InvalidValueException($message);
+        }
+
+        foreach ($tags as $tag)
+        {
+            if (!is_string($tag))
             {
-                if (is_string($tag) === false)
-                {
-                    $tagType = get_debug_type($tag);
-                    throw new \Exception("Tags need to be strings, but one of them is of type {$tagType}");
-                }
+                $type = get_debug_type($tag);
+                throw new InvalidValueException("Tags must be the names of the tags, but one was a {$type}.");
             }
         }
 
         $this->m_method = $method;
-        $this->m_responses = $responses;
+        $this->m_responses = clone $responses;
         $this->m_summary = $summary;
         $this->m_description = $description;
-        $this->m_parameters = $parameters;
+        $this->m_parameters = clone $parameters;
         $this->m_requestBody = $requestBody;
-        $this->m_tags = $tags;
+        $this->m_tags = array_values(array_unique($tags));
         $this->m_operationId = $operationId;
         $this->m_externalDocs = $externalDocs;
-        $this->m_callbacks = $callbacks;
+        $this->m_callbacks = clone $callbacks;
         $this->m_deprecated = $deprecated;
-        $this->m_security = $security;
-        $this->m_servers = $servers;
+        $this->m_security = ($security === null) ? null : clone $security;
+        $this->m_servers = clone $servers;
+        $this->m_extensions = clone $extensions;
     }
 
 
-    public function jsonSerialize() : mixed
+    /**
+     * Get the operation's own security, if it has any. Null means it uses the document's.
+     * @return SecurityRequirementCollection|null
+     */
+    public function getSecurity() : ?SecurityRequirementCollection
     {
-        $optionalFields = [
+        return ($this->m_security === null) ? null : clone $this->m_security;
+    }
+
+
+    public function jsonSerialize() : \stdClass
+    {
+        $fields = [
+            'tags' => count($this->m_tags) === 0 ? null : $this->m_tags,
             'summary' => $this->m_summary,
             'description' => $this->m_description,
-            'parameters' => $this->m_parameters,
-            'requestBody' => $this->m_requestBody,
-            'tags' => $this->m_tags,
-            'operationId' => $this->m_operationId,
             'externalDocs' => $this->m_externalDocs,
-            'callbacks' => $this->m_callbacks,
-            'deprecated' => $this->m_deprecated,
+            'operationId' => $this->m_operationId,
+            'parameters' => $this->m_parameters->isEmpty() ? null : $this->m_parameters,
+            'requestBody' => $this->m_requestBody,
+            'responses' => $this->m_responses,
+            'callbacks' => $this->m_callbacks->isEmpty() ? null : $this->m_callbacks,
+            'deprecated' => $this->m_deprecated ? true : null,
             'security' => $this->m_security,
-            'servers' => $this->m_servers,
+            'servers' => $this->m_servers->isEmpty() ? null : $this->m_servers,
         ];
 
-        $isProvided = function (mixed $value) : bool { return $value !== null; };
-        return array_merge(['responses' => $this->m_responses], array_filter($optionalFields, $isProvided));
+        return JsonObject::create($fields, $this->m_extensions);
     }
 
 
     # Accessors
     public function getMethod() : Method { return $this->m_method; }
+    public function getOperationId() : ?string { return $this->m_operationId; }
+    public function getParameters() : ParameterCollection { return clone $this->m_parameters; }
 }

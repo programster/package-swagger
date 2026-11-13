@@ -2,47 +2,65 @@
 
 namespace Programster\Swagger\OAuth;
 
+use Programster\Swagger\Exceptions\InvalidValueException;
+use Programster\Swagger\Extensions\ExtensionMap;
+use Programster\Swagger\Internal\JsonObject;
+use Programster\Swagger\Internal\Validator;
 
-class ImplicitFlow implements \JsonSerializable
+
+/**
+ * The OAuth implicit flow, in which the access token is given straight to the client, once the user
+ * authorizes it.
+ * https://swagger.io/specification/v3/#oauth-flow-object
+ */
+final readonly class ImplicitFlow implements \JsonSerializable
 {
-    private readonly string $m_authorizationUrl;
-    private readonly ScopeMap $m_scopes;
-    private readonly ?string $m_refreshUrl;
+    private string $m_authorizationUrl;
+    private ScopeMap $m_scopes;
+    private ?string $m_refreshUrl;
+    private ExtensionMap $m_extensions;
 
 
     /**
-     * @throws \Exception - if any of the URLs aren't valid.
+     * @param string $authorizationUrl - the URL to send the user to, to authorize the client.
+     * @param ScopeMap $scopes - the scopes that the flow offers. It may be empty.
+     * @param string|null $refreshUrl - the URL to get a new access token from, if the flow supports it.
+     * @param ExtensionMap $extensions - specification extensions ("x-" fields) to add to the flow.
+     * @throws InvalidValueException - if any of the URLs isn't a URL.
      */
-    public function __construct(string $authorizationUrl, ScopeMap $scopes, ?string $refreshUrl = null)
+    public function __construct(
+        string $authorizationUrl,
+        ScopeMap $scopes,
+        ?string $refreshUrl = null,
+        ExtensionMap $extensions = new ExtensionMap()
+    )
     {
-        if (filter_var($authorizationUrl, FILTER_VALIDATE_URL) === false)
-        {
-            throw new \Exception("{$authorizationUrl} is not a valid URL");
-        }
+        Validator::assertUrl($authorizationUrl, "The authorization URL");
 
-        if ($refreshUrl !== null && filter_var($refreshUrl, FILTER_VALIDATE_URL) === false)
+        if ($refreshUrl !== null)
         {
-            throw new \Exception("{$refreshUrl} is not a valid URL");
+            Validator::assertUrl($refreshUrl, "The refresh URL");
         }
 
         $this->m_authorizationUrl = $authorizationUrl;
-        $this->m_scopes = $scopes;
+        $this->m_scopes = clone $scopes;
         $this->m_refreshUrl = $refreshUrl;
+        $this->m_extensions = clone $extensions;
     }
 
 
-    public function jsonSerialize(): mixed
+    public function jsonSerialize() : \stdClass
     {
-        $arrayForm = [
+        $fields = [
             'authorizationUrl' => $this->m_authorizationUrl,
+            'refreshUrl' => $this->m_refreshUrl,
             'scopes' => $this->m_scopes,
         ];
 
-        if ($this->m_refreshUrl !== null)
-        {
-            $arrayForm['refreshUrl'] = $this->m_refreshUrl;
-        }
-
-        return $arrayForm;
+        return JsonObject::create($fields, $this->m_extensions);
     }
+
+
+    # Accessors
+    public function getScopes() : ScopeMap { return clone $this->m_scopes; }
 }

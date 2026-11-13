@@ -2,36 +2,53 @@
 
 namespace Programster\Swagger\Schemas;
 
+use Programster\Swagger\Exceptions\DuplicateKeyException;
+use Programster\Swagger\Internal\AbstractKeyedCollection;
 
-class SchemaMap implements \JsonSerializable
+
+/**
+ * The schemas in the components, each under its name.
+ */
+final class SchemaMap extends AbstractKeyedCollection
 {
-    private readonly array $m_map;
-
-
     /**
-     * @param NamedSchema ...$schemas - the schemas, each of which must have a unique name.
-     * @throws \Exception - if two of the schemas have the same name.
+     * @param NamedSchema ...$schemas - the schemas.
+     * @throws DuplicateKeyException - if two of them have the same name.
      */
     public function __construct(NamedSchema ...$schemas)
     {
-        $map = [];
-
-        foreach ($schemas as $schema)
-        {
-            if (isset($map[$schema->getName()]))
-            {
-                throw new \Exception("{$schema->getName()} already taken in " . __CLASS__);
-            }
-
-            $map[$schema->getName()] = $schema->getSchema();
-        }
-
-        $this->m_map = $map;
+        parent::__construct($schemas);
     }
 
 
-    public function jsonSerialize(): array
+    public function getType() : string
     {
-        return $this->m_map;
+        return NamedSchema::class;
+    }
+
+
+    public function jsonSerialize() : \stdClass
+    {
+        return $this->toJsonObject();
+    }
+
+
+    protected function getKeyOf(mixed $item) : string
+    {
+        /** @var NamedSchema $item */
+        return $item->getName();
+    }
+
+
+    protected function describeKey(string $key) : string
+    {
+        return "a schema named \"{$key}\"";
+    }
+
+
+    protected function getJsonValueOf(mixed $item) : mixed
+    {
+        /** @var NamedSchema $item */
+        return $item->getSchema();
     }
 }

@@ -15,8 +15,15 @@ php -d zend.assertions=1 testing/main.php
 
 The tests are in `testing/tests/`, with one file per area of the package (e.g. `SchemasTest.php` for the schemas,
 and `SecurityTest.php` for the security schemes and requirements). Between them, they create every class, call
-nearly every public method, and check the JSON that each one produces. `OpenApiTest.php` also builds a whole
-document and compares it against `testing/assets/users-api.json`.
+nearly every public method, check the JSON that each one produces, and check that every mistake the package should
+catch throws the right exception. `OpenApiTest.php` also builds a whole document and compares it against
+`testing/assets/users-api.json`.
+
+`DocsTest.php` runs every PHP example in the README and in `docs/` (except this page), so the documentation can't
+fall out of date with the code. The examples on a page run in order, so one can use what an earlier one created. An
+example whose last statement should throw ends with a comment saying so, e.g. `// Throws InvalidValueException`, and
+the test checks that it does. An example that starts with `// Version 3` shows the old API, in the upgrade guide,
+so it isn't run.
 
 A test fails if it throws, fails an `assert()`, or raises a PHP warning or deprecation. `main.php` runs every
 `*Test.php` file in that folder, so a new file is picked up automatically. It exits with a non-zero code if anything
@@ -27,13 +34,13 @@ on if it can, but most installs set it to `-1`, which can only be changed on the
 `main.php` refuses to run rather than pass without checking anything.
 
 ## Testing every supported PHP version
-This package supports PHP 8.1 and above. To check it works on every supported version, run the following, which uses
+This package supports PHP 8.2 and above. To check it works on every supported version, run the following, which uses
 Docker to test each version in its own container. Use this before releasing, as it catches code that only works on
 newer versions of PHP than the minimum.
 
 ```bash
-testing/run-all-php-versions.sh             # test every supported version (8.1 to 8.5)
-testing/run-all-php-versions.sh 8.1 8.5     # test only specific versions
+testing/run-all-php-versions.sh             # test every supported version (8.2 to 8.5)
+testing/run-all-php-versions.sh 8.2 8.5     # test only specific versions
 testing/run-all-php-versions.sh --rebuild   # rebuild the Docker images first, to get the latest PHP patch releases
 ```
 
@@ -50,8 +57,8 @@ SWAGGER_TEST_ONLY="Parameter" php -d zend.assertions=1 testing/main.php
 ```
 
 ## Continuous integration
-`.github/workflows/tests.yml` runs `run-all-php-versions.sh` on pushes to `master`, every tag, and pull requests into
-`master`. It can also be run on any branch by hand, with "Run workflow" on the repository's Actions tab. The README's
+`.github/workflows/tests.yml` runs `run-all-php-versions.sh` on pushes to `master` (and, until version 4 is released,
+`4.x`), every tag, and pull requests into `master`. It can also be run on any branch by hand, with "Run workflow" on the repository's Actions tab. The README's
 badge shows the result of the latest run on `master`.
 
 ## Writing tests
@@ -68,7 +75,7 @@ $testContact = function () : void {
         new Contact();
     };
 
-    SmokeTest::expectException(\Exception::class, $createEmptyContact, "at least one of name, url, or email");
+    SmokeTest::expectException(InvalidValueException::class, $createEmptyContact, "at least one of a name, URL or email");
 };
 
 $smoke->run("Contact", $testContact);

@@ -1,14 +1,15 @@
 <?php
 
 /*
- * Formats for string parameters.
+ * Formats for string schemas (SchemaString). OpenAPI defines date, date-time, password, byte and binary, and
+ * allows any other format, such as the ones from JSON Schema below.
  * http://json-schema.org/understanding-json-schema/reference/string.html#built-in-formats
  */
 
-namespace Programster\Swagger;
+namespace Programster\Swagger\Schemas;
 
 
-enum Format: string
+enum StringFormat: string
 {
     // Date and time together, for example, 2018-11-13T20:20:39+00:00.
     case DATE_TIME = "date-time";
@@ -69,4 +70,13 @@ enum Format: string
 
     // A regular expression, which should be valid according to the ECMA 262 dialect.
     case REGEX = "regex";
+
+    // A hint to UIs to hide the input, e.g. for a password. Defined by OpenAPI.
+    case PASSWORD = "password";
+
+    // Base64 encoded characters. Defined by OpenAPI.
+    case BYTE = "byte";
+
+    // Any sequence of octets, e.g. the contents of a file. Defined by OpenAPI.
+    case BINARY = "binary";
 }

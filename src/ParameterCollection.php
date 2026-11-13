@@ -1,54 +1,114 @@
 <?php
 
-/*
- * A collection that can only take Parameters (or references to them)
- */
-
 namespace Programster\Swagger;
 
+use Programster\Swagger\Exceptions\DuplicateKeyException;
+use Ramsey\Collection\AbstractCollection;
 
-final class ParameterCollection extends \ArrayObject implements \JsonSerializable
+
+/**
+ * The parameters of an operation, or of every operation on a path. There can't be two in the same location with the
+ * same name.
+ */
+final class ParameterCollection extends AbstractCollection implements \JsonSerializable
 {
-    public function __construct(Parameter|Reference ...$parameters)
+    /**
+     * @param ParameterInterface ...$parameters - the parameters, or references to them.
+     * @throws DuplicateKeyException - if two of the parameters are in the same location, with the same name.
+     */
+    public function __construct(ParameterInterface ...$parameters)
     {
         parent::__construct($parameters);
     }
 
 
     /**
-     * @throws \Exception - if the value isn't a Parameter or Reference.
+     * Set a parameter, checking that there isn't already one in the same location, with the same name.
+     *
+     * @param mixed $offset - the offset to set the parameter at, or null to add it to the end.
+     *
+     * @param mixed $value - the parameter.
+     *
+     * @return void
+     *
+     * @throws DuplicateKeyException - if there is already a parameter in the same location, with the same name.
+     * @throws \Ramsey\Collection\Exception\InvalidArgumentException - if the value isn't a ParameterInterface.
      */
-    public function append(mixed $value) : void
+    public function offsetSet(mixed $offset, mixed $value) : void
     {
-        if ($value instanceof Parameter || $value instanceof Reference)
+        if ($value instanceof Parameter)
         {
-            parent::append($value);
+            foreach ($this->data as $existingOffset => $existing)
+            {
+                $isSame = (
+                       $existingOffset !== $offset
+                    && $existing instanceof Parameter
+                    && $existing->getName() === $value->getName()
+                    && $existing->getLocation() === $value->getLocation()
+                );
+
+                if ($isSame)
+                {
+                    $location = $value->getLocation()->value;
+                    $message = "ParameterCollection already has a {$location} parameter named \"{$value->getName()}\".";
+                    throw new DuplicateKeyException($message);
+                }
+            }
         }
-        else
-        {
-            throw new \Exception("Cannot append non Parameter to a " . __CLASS__);
-        }
+
+        parent::offsetSet($offset, $value);
+    }
+
+
+    public function getType() : string
+    {
+        return ParameterInterface::class;
     }
 
 
     /**
-     * @throws \Exception - if the value isn't a Parameter or Reference.
+     * Get the names of the parameters that are in the path. References aren't included, as what they refer to can't
+     * be known here.
+     * @return string[]
      */
-    public function offsetSet(mixed $index, mixed $newval) : void
+    public function getPathParameterNames() : array
     {
-        if ($newval instanceof Parameter || $newval instanceof Reference)
+        $names = [];
+
+        foreach ($this->data as $parameter)
         {
-            parent::offsetSet($index, $newval);
+            if ($parameter instanceof Parameter && $parameter->getLocation() === ParameterLocation::PATH)
+            {
+                $names[] = $parameter->getName();
+            }
         }
-        else
+
+        return $names;
+    }
+
+
+    /**
+     * Check whether any of the parameters are references, which could be to parameters in the path.
+     * @return bool
+     */
+    public function hasReferences() : bool
+    {
+        $hasReferences = false;
+
+        foreach ($this->data as $parameter)
         {
-            throw new \Exception("Cannot add a non Parameter value to a " . __CLASS__);
+            if (!($parameter instanceof Parameter))
+            {
+                $hasReferences = true;
+            }
         }
+
+        return $hasReferences;
     }
 
 
     public function jsonSerialize() : array
     {
-        return $this->getArrayCopy();
+        return array_values($this->data);
     }
 }

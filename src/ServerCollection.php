@@ -1,13 +1,14 @@
 <?php
 
-/*
- * A collection that can only take Servers
- */
-
 namespace Programster\Swagger;
 
+use Ramsey\Collection\AbstractCollection;
 
-final class ServerCollection extends \ArrayObject implements \JsonSerializable
+
+/**
+ * The servers that the API (or a path, or an operation) is available on.
+ */
+final class ServerCollection extends AbstractCollection implements \JsonSerializable
 {
     public function __construct(Server ...$servers)
     {
@@ -15,40 +16,14 @@ final class ServerCollection extends \ArrayObject implements \JsonSerializable
     }
 
 
-    /**
-     * @throws \Exception - if the value isn't a Server.
-     */
-    public function append(mixed $value) : void
+    public function getType() : string
     {
-        if ($value instanceof Server)
-        {
-            parent::append($value);
-        }
-        else
-        {
-            throw new \Exception("Cannot append non Server to a " . __CLASS__);
-        }
-    }
-
-
-    /**
-     * @throws \Exception - if the value isn't a Server.
-     */
-    public function offsetSet(mixed $index, mixed $newval) : void
-    {
-        if ($newval instanceof Server)
-        {
-            parent::offsetSet($index, $newval);
-        }
-        else
-        {
-            throw new \Exception("Cannot add a non Server value to a " . __CLASS__);
-        }
+        return Server::class;
     }
 
 
     public function jsonSerialize() : array
     {
-        return $this->getArrayCopy();
+        return array_values($this->data);
     }
 }

@@ -2,50 +2,46 @@
 
 namespace Programster\Swagger;
 
+use Programster\Swagger\Exceptions\DuplicateKeyException;
+use Programster\Swagger\Internal\AbstractKeyedCollection;
 
-class ServerVariableMap implements \JsonSerializable
+
+/**
+ * The variables in a server's URL, each under its name.
+ */
+final class ServerVariableMap extends AbstractKeyedCollection
 {
-    private array $m_map;
-
-
-    public function __construct(string $variableName, ServerVariable $serverVariable)
-    {
-        $this->m_map = [$variableName => $serverVariable];
-    }
-
-
     /**
-     * Add another server variable.
-     * @param string $variableName - the name of the variable, as used in the server's URL.
-     * @param ServerVariable $serverVariable - the variable.
-     * @return void
-     * @throws \Exception - if there's already a variable with that name.
+     * @param ServerVariable ...$variables - the variables.
+     * @throws DuplicateKeyException - if two of them have the same name.
      */
-    public function add(string $variableName, ServerVariable $serverVariable)
+    public function __construct(ServerVariable ...$variables)
     {
-        if (isset($this->m_map[$variableName]))
-        {
-            throw new \Exception("{$variableName} already taken in " . __CLASS__);
-        }
-
-        $this->m_map[$variableName] = $serverVariable;
+        parent::__construct($variables);
     }
 
 
-    /**
-     * This is the same as add, except that it won't throw an exception if the key is already taken.
-     * @param string $key - the name of the variable, as used in the server's URL.
-     * @param ServerVariable $serverVariable - the variable.
-     * @return void
-     */
-    public function addOrReplace(string $key, ServerVariable $serverVariable)
+    public function getType() : string
     {
-        $this->m_map[$key] = $serverVariable;
+        return ServerVariable::class;
     }
 
 
-    public function jsonSerialize(): mixed
+    public function jsonSerialize() : \stdClass
     {
-        return $this->m_map;
+        return $this->toJsonObject();
+    }
+
+
+    protected function getKeyOf(mixed $item) : string
+    {
+        /** @var ServerVariable $item */
+        return $item->getName();
+    }
+
+
+    protected function describeKey(string $key) : string
+    {
+        return "a variable named \"{$key}\"";
     }
 }

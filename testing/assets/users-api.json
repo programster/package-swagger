@@ -2,7 +2,6 @@
     "openapi": "3.0.3",
     "info": {
         "title": "Users API",
-        "version": "1.0",
         "description": "An API for managing users.",
         "contact": {
             "name": "Support",
@@ -11,97 +10,8 @@
         "license": {
             "name": "MIT",
             "url": "https://opensource.org/licenses/MIT"
-        }
-    },
-    "paths": {
-        "/users/{id}": {
-            "get": {
-                "responses": {
-                    "200": {
-                        "description": "The user.",
-                        "content": {
-                            "application/json": {
-                                "schema": {
-                                    "$ref": "#/components/schemas/User"
-                                },
-                                "example": {
-                                    "id": "abc",
-                                    "name": "Bob"
-                                }
-                            }
-                        },
-                        "headers": {
-                            "X-Rate-Limit": {
-                                "description": "Requests left.",
-                                "schema": {
-                                    "type": "string"
-                                }
-                            }
-                        }
-                    }
-                },
-                "summary": "Get a user.",
-                "parameters": [
-                    {
-                        "name": "id",
-                        "in": "path",
-                        "required": true,
-                        "schema": {
-                            "type": "string",
-                            "format": "uuid"
-                        }
-                    }
-                ],
-                "tags": [
-                    "users"
-                ],
-                "operationId": "getUser"
-            }
         },
-        "/users": {
-            "post": {
-                "responses": {
-                    "201": {
-                        "description": "The user.",
-                        "content": {
-                            "application/json": {
-                                "schema": {
-                                    "$ref": "#/components/schemas/User"
-                                },
-                                "example": {
-                                    "id": "abc",
-                                    "name": "Bob"
-                                }
-                            }
-                        },
-                        "headers": {
-                            "X-Rate-Limit": {
-                                "description": "Requests left.",
-                                "schema": {
-                                    "type": "string"
-                                }
-                            }
-                        }
-                    }
-                },
-                "summary": "Create a user.",
-                "requestBody": {
-                    "content": {
-                        "application/json": {
-                            "schema": {
-                                "$ref": "#/components/schemas/User"
-                            }
-                        }
-                    },
-                    "required": true,
-                    "description": "The user to create."
-                },
-                "tags": [
-                    "users"
-                ],
-                "operationId": "createUser"
-            }
-        }
+        "version": "1.0"
     },
     "servers": [
         {
@@ -109,6 +19,113 @@
             "description": "Production"
         }
     ],
+    "paths": {
+        "/users/{id}": {
+            "get": {
+                "tags": [
+                    "users"
+                ],
+                "summary": "Get a user.",
+                "operationId": "getUser",
+                "responses": {
+                    "200": {
+                        "description": "The user.",
+                        "headers": {
+                            "X-Rate-Limit": {
+                                "description": "Requests left.",
+                                "schema": {
+                                    "type": "integer"
+                                }
+                            }
+                        },
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/User"
+                                },
+                                "example": {
+                                    "id": "abc",
+                                    "name": "Bob"
+                                }
+                            }
+                        }
+                    }
+                },
+                "security": [
+                    {
+                        "oauth": [
+                            "users:read"
+                        ]
+                    },
+                    {
+                        "apiKey": []
+                    }
+                ]
+            },
+            "parameters": [
+                {
+                    "name": "id",
+                    "in": "path",
+                    "required": true,
+                    "schema": {
+                        "type": "string",
+                        "format": "uuid"
+                    }
+                }
+            ]
+        },
+        "/users": {
+            "post": {
+                "tags": [
+                    "users"
+                ],
+                "summary": "Create a user.",
+                "operationId": "createUser",
+                "requestBody": {
+                    "description": "The user to create.",
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "$ref": "#/components/schemas/User"
+                            }
+                        }
+                    },
+                    "required": true
+                },
+                "responses": {
+                    "201": {
+                        "description": "The user.",
+                        "headers": {
+                            "X-Rate-Limit": {
+                                "description": "Requests left.",
+                                "schema": {
+                                    "type": "integer"
+                                }
+                            }
+                        },
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/User"
+                                },
+                                "example": {
+                                    "id": "abc",
+                                    "name": "Bob"
+                                }
+                            }
+                        }
+                    }
+                },
+                "security": [
+                    {
+                        "oauth": [
+                            "users:write"
+                        ]
+                    }
+                ]
+            }
+        }
+    },
     "components": {
         "schemas": {
             "User": {
@@ -123,26 +140,38 @@
                         "type": "string",
                         "minLength": 3,
                         "maxLength": 255
+                    },
+                    "age": {
+                        "type": "integer",
+                        "minimum": 0
                     }
                 },
                 "required": [
+                    "id",
                     "name"
                 ]
             }
         },
         "securitySchemes": {
+            "oauth": {
+                "type": "oauth2",
+                "flows": {
+                    "clientCredentials": {
+                        "tokenUrl": "https://auth.example.com/token",
+                        "scopes": {
+                            "users:read": "Read users.",
+                            "users:write": "Create users."
+                        }
+                    }
+                }
+            },
             "apiKey": {
                 "type": "apiKey",
-                "name": "api_key",
+                "name": "X-API-Key",
                 "in": "header"
             }
         }
     },
-    "security": [
-        {
-            "apiKey": []
-        }
-    ],
     "tags": [
         {
             "name": "users",

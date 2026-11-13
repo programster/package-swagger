@@ -1,13 +1,16 @@
 <?php
 
 /*
- * Smoke tests for RequestBody and RequestBodyMap. These are run by testing/main.php, which provides $smoke.
+ * Smoke tests for RequestBody, NamedRequestBody and RequestBodyMap. These are run by testing/main.php, which provides
+ * $smoke.
  */
 
 use Programster\Swagger\ContentMap;
+use Programster\Swagger\Exceptions\DuplicateKeyException;
+use Programster\Swagger\Exceptions\InvalidValueException;
 use Programster\Swagger\MediaType;
 use Programster\Swagger\MimeType;
-use Programster\Swagger\Reference;
+use Programster\Swagger\NamedRequestBody;
 use Programster\Swagger\RequestBody;
 use Programster\Swagger\RequestBodyMap;
 use Programster\Swagger\Schemas\SchemaString;
@@ -16,32 +19,43 @@ use Programster\Swagger\Testing\SmokeTest;
 /** @var SmokeTest $smoke */
 
 $testRequestBody = function () : void {
-    $content = new ContentMap(MimeType::JSON, new MediaType(new SchemaString()));
+    $content = new ContentMap(new MediaType(MimeType::JSON, new SchemaString()));
     SmokeTest::assertJson('{"content":{"application/json":{"schema":{"type":"string"}}}}', new RequestBody($content));
 
     $body = new RequestBody($content, "The user to create.", true);
 
-    $expected = '{"content":{"application/json":{"schema":{"type":"string"}}},"required":true,'
-        . '"description":"The user to create."}';
+    $expected = '{"description":"The user to create.","content":{"application/json":{"schema":{"type":"string"}}},'
+        . '"required":true}';
 
     SmokeTest::assertJson($expected, $body);
+
+    // The body keeps a copy of the content, so it can't be emptied afterwards.
+    $content->clear();
+    SmokeTest::assertJson($expected, $body);
+
+    $createWithEmptyContent = function () use ($content) : void {
+        new RequestBody($content);
+    };
+
+    SmokeTest::expectException(InvalidValueException::class, $createWithEmptyContent, "content can't be empty");
 };
 
 $smoke->run("RequestBody", $testRequestBody);
 
 $testRequestBodyMap = function () : void {
-    $map = new RequestBodyMap("user", new Reference("#/a"));
-    $map->add("group", new Reference("#/b"));
-    $map->addOrReplace("group", new Reference("#/c"));
-    SmokeTest::assertJson('{"user":{"$ref":"#/a"},"group":{"$ref":"#/c"}}', $map);
-    assert(array_keys($map->toArray()) === ["user", "group"]);
+    $body = new RequestBody(new ContentMap(new MediaType(MimeType::JSON)));
+    $named = new NamedRequestBody("User", $body);
+    assert($named->getName() === "User" && $named->getRequestBody() === $body);
+    SmokeTest::assertJson('{"$ref":"#/components/requestBodies/User"}', $named->createReference());
 
-    // add() used to check the wrong property, so it never caught a duplicate name.
-    $addDuplicate = function () use ($map) : void {
-        $map->add("user", new Reference("#/d"));
+    $map = new RequestBodyMap($named);
+    SmokeTest::assertJson('{"User":{"content":{"application/json":{}}}}', $map);
+
+    $createWithDuplicateNames = function () use ($named) : void {
+        new RequestBodyMap($named, $named);
     };
 
-    SmokeTest::expectException(\Exception::class, $addDuplicate, "user already taken");
+    SmokeTest::expectException(DuplicateKeyException::class, $createWithDuplicateNames, 'a request body named "User"');
 };
 
-$smoke->run("RequestBodyMap", $testRequestBodyMap);
+$smoke->run("RequestBodyMap and NamedRequestBody", $testRequestBodyMap);

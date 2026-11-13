@@ -1,8 +1,13 @@
 {
     "name": "programster/swagger",
     "type": "library",
-    "description": "Package creating swagger documentation.",
-    "keywords": ["swagger"],
+    "description": "A package for generating OpenAPI 3.0.3 (formerly Swagger) documents, by building them from PHP objects that check themselves as they are created.",
+    "keywords": [
+        "openapi",
+        "swagger",
+        "api",
+        "documentation"
+    ],
     "license": "MIT",
     "authors": [
         {
@@ -12,16 +17,13 @@
         }
     ],
     "require": {
-        "php": ">=8.1.0",
-        "ext-yaml": "*"
+        "php": ">=8.2.0",
+        "ext-yaml": "*",
+        "ramsey/collection": "^2.1"
     },
     "autoload": {
         "psr-4": {
-            "Programster\\Swagger\\": "src/",
-            "Programster\\Swagger\\Examples\\\\": "src/Examples",
-            "Programster\\Swagger\\OAuth\\": "src/OAuth",
-            "Programster\\Swagger\\Schemas\\": "src/Schemas",
-            "Programster\\Swagger\\Security\\": "src/Security"
+            "Programster\\Swagger\\": "src/"
         }
     },
     "autoload-dev": {

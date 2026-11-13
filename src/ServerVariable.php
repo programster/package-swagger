@@ -1,65 +1,100 @@
 <?php
 
-/*
- * https://swagger.io/specification/#server-variable-object
- */
-
 namespace Programster\Swagger;
 
+use Programster\Swagger\Exceptions\InvalidValueException;
+use Programster\Swagger\Extensions\ExtensionMap;
+use Programster\Swagger\Internal\JsonObject;
+use Programster\Swagger\Internal\Validator;
 
-class ServerVariable implements \JsonSerializable
+
+/**
+ * A variable in a server's URL, e.g. the "environment" in "https://{environment}.example.com".
+ * https://swagger.io/specification/v3/#server-variable-object
+ */
+final readonly class ServerVariable implements \JsonSerializable
 {
-    private readonly string $m_default;
-    private readonly ?string $m_description;
-    private readonly ?array $m_enum;
+    private string $m_name;
+    private string $m_default;
+    private ?string $m_description;
+    private ?array $m_enum;
+    private ExtensionMap $m_extensions;
 
 
     /**
-     * @param string $default - The default value to use for substitution, which SHALL be sent if an alternate value is
-     * not supplied. Note this behavior is different than the Schema Object's treatment of default values, because in
-     * those cases parameter values are optional. If the enum is defined, the value SHOULD exist in the enum's values.
+     * @param string $name - the name of the variable, as it is in the server's URL (without the braces).
      *
-     * @param string|null $description - An optional description for the server variable. CommonMark syntax MAY be used
-     * for rich text representation.
+     * @param string $default - the value to use when no other is given.
      *
-     * @param string[]|null $enum - An enumeration of string values to be used if the substitution options are from a
-     * limited set. The array SHOULD NOT be empty if provided.
+     * @param string|null $description - a description of the variable. CommonMark syntax may be used.
      *
-     * @throws \Exception - if $enum is empty, or any of its values aren't strings.
+     * @param string[]|null $enum - the only values that the variable can have, if it is limited to some. This can't
+     * be empty, and must include the default.
+     *
+     * @param ExtensionMap $extensions - specification extensions ("x-" fields) to add to the variable.
+     *
+     * @throws InvalidValueException - if the name is empty, or the enum is empty, has a value that isn't a string,
+     * or doesn't include the default.
      */
-    public function __construct(string $default, ?string $description = null, ?array $enum = null)
+    public function __construct(
+        string $name,
+        string $default,
+        ?string $description = null,
+        ?array $enum = null,
+        ExtensionMap $extensions = new ExtensionMap()
+    )
     {
-        if ($enum !== null && count($enum) === 0)
-        {
-            $message = "Enum cannot be an empty array when creating a ServerVariable. Did you mean to use 'null'?";
-            throw new \Exception($message);
-        }
+        Validator::assertNotEmpty($name, "The server variable's name");
 
         if ($enum !== null)
         {
+            if (count($enum) === 0)
+            {
+                $message = "The \"{$name}\" server variable's enum can't be empty. Leave it as null if any value is "
+                    . "allowed.";
+
+                throw new InvalidValueException($message);
+            }
+
             foreach ($enum as $value)
             {
-                if (is_string($value) === false)
+                if (!is_string($value))
                 {
-                    throw new \Exception("Values in enum array need to all be strings.");
+                    $type = get_debug_type($value);
+                    $message = "The \"{$name}\" server variable's enum has a {$type}, not a string.";
+                    throw new InvalidValueException($message);
                 }
+            }
+
+            if (!in_array($default, $enum, true))
+            {
+                $message = "The \"{$name}\" server variable's default (\"{$default}\") isn't one of its enum's "
+                    . "values.";
+
+                throw new InvalidValueException($message);
             }
         }
 
+        $this->m_name = $name;
         $this->m_default = $default;
         $this->m_description = $description;
-        $this->m_enum = $enum;
+        $this->m_enum = ($enum === null) ? null : array_values($enum);
+        $this->m_extensions = clone $extensions;
     }
 
 
-    public function jsonSerialize(): mixed
+    public function jsonSerialize() : \stdClass
     {
-        $optionalFields = [
+        $fields = [
             'enum' => $this->m_enum,
+            'default' => $this->m_default,
             'description' => $this->m_description,
         ];
 
-        $isProvided = function (mixed $value) : bool { return $value !== null; };
-        return array_merge(['default' => $this->m_default], array_filter($optionalFields, $isProvided));
+        return JsonObject::create($fields, $this->m_extensions);
     }
+
+
+    # Accessors
+    public function getName() : string { return $this->m_name; }
 }

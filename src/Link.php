@@ -1,59 +1,38 @@
 <?php
 
-/*
- * https://swagger.io/specification/#link-object
- */
-
 namespace Programster\Swagger;
 
+use Programster\Swagger\Exceptions\InvalidValueException;
+use Programster\Swagger\Extensions\ExtensionMap;
+use Programster\Swagger\Internal\JsonObject;
+use Programster\Swagger\Internal\Validator;
 
-class Link implements \JsonSerializable
+
+/**
+ * A link from a response to another operation, which can be called with values from the response, e.g. getting the
+ * user that a "create user" response returned the ID of. Create one with createFromOperationId() or
+ * createFromOperationRef(), as it must point at the operation one way or the other.
+ * https://swagger.io/specification/v3/#link-object
+ */
+final readonly class Link implements LinkInterface
 {
-    private readonly ?string $m_operationRef;
-    private readonly ?string $m_operationId;
-    private readonly ?array $m_parameters;
-    private readonly mixed $m_requestBody;
-    private readonly ?string $m_description;
-    private readonly ?Server $m_server;
+    private ?string $m_operationRef;
+    private ?string $m_operationId;
+    private ?array $m_parameters;
+    private mixed $m_requestBody;
+    private ?string $m_description;
+    private ?Server $m_server;
+    private ExtensionMap $m_extensions;
 
 
-    /**
-     * The Link object represents a possible design-time link for a response. The presence of a link does not guarantee
-     * the caller's ability to successfully invoke it, rather it provides a known relationship and traversal mechanism
-     * between responses and other operations.
-     * Unlike dynamic links (i.e. links provided in the response payload), the OAS linking mechanism does not require
-     * link information in the runtime response.
-     * For computing links, and providing instructions to execute them, a runtime expression is used for accessing
-     * values in an operation and using them as parameters while invoking the linked operation.
-     *
-     * @param string|null $operationRef - A relative or absolute URI reference to an OAS operation. This field is
-     * mutually exclusive of the operationId field, and MUST point to an Operation Object. Relative operationRef values
-     * MAY be used to locate an existing Operation Object in the OpenAPI definition.
-     *
-     * @param string|null $operationId - The name of an existing, resolvable OAS operation, as defined with a unique
-     * operationId. This field is mutually exclusive of the operationRef field.
-     *
-     * @param array|null $parameters - A map representing parameters to pass to an operation as specified with
-     * operationId or identified via operationRef. The key is the parameter name to be used, whereas the value can be a
-     * constant or an expression to be evaluated and passed to the linked operation. The parameter name can be qualified
-     * using the parameter location [{in}.]{name} for operations that use the same parameter name in different locations
-     * (e.g. path.id).
-     *
-     * @param mixed $requestBody - A literal value or {expression} to use as a request body when calling the target
-     * operation.
-     *
-     * @param string|null $description - A description of the link. CommonMark syntax MAY be used for rich text
-     * representation.
-     *
-     * @param Server|null $server - A server object to be used by the target operation.
-     */
-    public function __construct(
+    private function __construct(
         ?string $operationRef,
         ?string $operationId,
         ?array $parameters,
         mixed $requestBody,
         ?string $description,
-        ?Server $server
+        ?Server $server,
+        ExtensionMap $extensions
     )
     {
         $this->m_operationRef = $operationRef;
@@ -62,12 +41,84 @@ class Link implements \JsonSerializable
         $this->m_requestBody = $requestBody;
         $this->m_description = $description;
         $this->m_server = $server;
+        $this->m_extensions = clone $extensions;
     }
 
 
-    public function jsonSerialize(): mixed
+    /**
+     * Create a link to an operation in this document, by its operationId.
+     *
+     * @param string $operationId - the operationId of the operation, e.g. "getUser".
+     *
+     * @param array|null $parameters - the parameters to call it with, under their names, e.g.
+     * ['userId' => '$response.body#/id']. Each value is a constant, or a runtime expression. A name can be prefixed
+     * with the parameter's location (e.g. "path.id") when two have the same name.
+     *
+     * @param mixed $requestBody - a value, or runtime expression, to use as the request body.
+     *
+     * @param string|null $description - a description of the link. CommonMark syntax may be used.
+     *
+     * @param Server|null $server - the server to call the operation on, if not the usual one.
+     *
+     * @param ExtensionMap $extensions - specification extensions ("x-" fields) to add to the link.
+     *
+     * @return Link
+     *
+     * @throws InvalidValueException - if the operationId is empty.
+     */
+    public static function createFromOperationId(
+        string $operationId,
+        ?array $parameters = null,
+        mixed $requestBody = null,
+        ?string $description = null,
+        ?Server $server = null,
+        ExtensionMap $extensions = new ExtensionMap()
+    ) : Link
     {
-        $optionalFields = [
+        Validator::assertNotEmpty($operationId, "The link's operationId");
+        return new Link(null, $operationId, $parameters, $requestBody, $description, $server, $extensions);
+    }
+
+
+    /**
+     * Create a link to an operation by a reference to it, which may be in another document.
+     *
+     * @param string $operationRef - the reference to the operation, e.g. "#/paths/~1users~1{id}/get", or
+     * "https://example.com/openapi.json#/paths/~1users/post".
+     *
+     * @param array|null $parameters - the parameters to call it with, under their names, e.g.
+     * ['userId' => '$response.body#/id']. Each value is a constant, or a runtime expression. A name can be prefixed
+     * with the parameter's location (e.g. "path.id") when two have the same name.
+     *
+     * @param mixed $requestBody - a value, or runtime expression, to use as the request body.
+     *
+     * @param string|null $description - a description of the link. CommonMark syntax may be used.
+     *
+     * @param Server|null $server - the server to call the operation on, if not the usual one.
+     *
+     * @param ExtensionMap $extensions - specification extensions ("x-" fields) to add to the link.
+     *
+     * @return Link
+     *
+     * @throws InvalidValueException - if the operationRef is empty.
+     */
+    public static function createFromOperationRef(
+        string $operationRef,
+        ?array $parameters = null,
+        mixed $requestBody = null,
+        ?string $description = null,
+        ?Server $server = null,
+        ExtensionMap $extensions = new ExtensionMap()
+    ) : Link
+    {
+        Validator::assertNotEmpty($operationRef, "The link's operationRef");
+        return new Link($operationRef, null, $parameters, $requestBody, $description, $server, $extensions);
+    }
+
+
+    public function jsonSerialize() : \stdClass
+    {
+        $fields = [
             'operationRef' => $this->m_operationRef,
             'operationId' => $this->m_operationId,
             'parameters' => $this->m_parameters,
@@ -76,7 +127,6 @@ class Link implements \JsonSerializable
             'server' => $this->m_server,
         ];
 
-        $isProvided = function (mixed $value) : bool { return $value !== null; };
-        return array_filter($optionalFields, $isProvided);
+        return JsonObject::create($fields, $this->m_extensions);
     }
 }
