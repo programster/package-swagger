@@ -167,18 +167,25 @@ The [Getting started](docs/getting-started.md) guide goes through how a document
 
 ## Validating a document
 The package checks a lot as the document is built, but it can't check everything (e.g. that a reference points at
-something that exists). To check a finished document against the OpenAPI specification, you can use the
-[swagger-cli](https://github.com/APIDevTools/swagger-cli) tool, which can be installed with:
+something that exists, or that an example matches its schema). To check a finished document against the OpenAPI
+specification, use [Redocly CLI](https://redocly.com/docs/cli/), which needs Node.js:
 
 ```bash
-npm install -g @apidevtools/swagger-cli
+npx @redocly/cli lint /path/to/openapi.json
 ```
 
-Once the tool is installed, validate your document with:
+Or with Docker, from the directory the document is in:
 
 ```bash
-swagger-cli validate /path/to/openapi.json
+docker run --rm -v "$PWD":/d:ro -w /d node:22-slim npx --yes @redocly/cli lint openapi.json
 ```
+
+It reports two kinds of problem. **Errors** mean the document isn't valid OpenAPI, or something in it is wrong (e.g.
+an example that doesn't match its schema), and should be fixed. **Warnings** are Redocly's advice about designing an
+API, such as every operation having a 4XX response, which you can follow or turn off in a
+[`redocly.yaml`](https://redocly.com/docs/cli/configuration/) file.
+
+The package's own output is checked this way on every push. See [Testing](docs/testing.md#validating-the-output).
 
 ## Design principles
 - **Mistakes can't be made, or are caught straight away.** Where possible, the types make a mistake impossible to

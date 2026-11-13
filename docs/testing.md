@@ -3,6 +3,7 @@
 - [Running the tests](#running-the-tests)
 - [Testing every supported PHP version](#testing-every-supported-php-version)
 - [Running some of the tests](#running-some-of-the-tests)
+- [Validating the output](#validating-the-output)
 - [Continuous integration](#continuous-integration)
 - [Writing tests](#writing-tests)
 
@@ -56,10 +57,29 @@ pass without checking anything:
 SWAGGER_TEST_ONLY="Parameter" php -d zend.assertions=1 testing/main.php
 ```
 
+## Validating the output
+The tests check that the package outputs what it should, but not that what it should output is valid OpenAPI. To
+check that, run the following, which uses Docker to validate the documents with
+[Redocly CLI](https://redocly.com/docs/cli/):
+
+```bash
+testing/validate-with-redocly.sh
+```
+
+It validates `testing/assets/users-api.json`, and a document that uses every feature of the package, which
+`testing/validation/build-documents.php` builds, as both JSON and YAML. Redocly's recommended rules are used, with
+every warning made an error, apart from two that are only advice about designing an API. They are set in
+`testing/validation/redocly.yaml`. It exits with a non-zero code if any document has a problem.
+
+When you add a feature to the package, use it in `build-documents.php`, so that its output is validated too. The
+version of Redocly CLI is pinned at the top of the script, so that a new release's rules can't fail a build that
+passed before.
+
 ## Continuous integration
-`.github/workflows/tests.yml` runs `run-all-php-versions.sh` on pushes to `master` (and, until version 4 is released,
-`4.x`), every tag, and pull requests into `master`. It can also be run on any branch by hand, with "Run workflow" on the repository's Actions tab. The README's
-badge shows the result of the latest run on `master`.
+`.github/workflows/tests.yml` runs `run-all-php-versions.sh` and then `validate-with-redocly.sh` on pushes to `master`
+(and, until version 4 is released, `4.x`), every tag, and pull requests into `master`. It can also be run on any
+branch by hand, with "Run workflow" on the repository's Actions tab. The README's badge shows the result of the latest
+run on `master`.
 
 ## Writing tests
 Add a test to the file for its area in `testing/tests/`, or create a new `*Test.php` file. `main.php` gives each file
@@ -88,5 +108,5 @@ document that is generated.
 Follow the coding standards used throughout `src/` in the tests too, e.g. no arrow functions, and a closure assigned
 to a descriptively named variable before it is passed to `run()` or `expectException()`.
 
-If you change `testing/assets/users-api.json`, check that it is still a valid OpenAPI document, as described in the
-README's [Validation](../README.md#validation) section.
+If you change `testing/assets/users-api.json`, check that it is still a valid OpenAPI document by running
+`testing/validate-with-redocly.sh`.

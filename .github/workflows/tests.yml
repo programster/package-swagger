@@ -1,5 +1,6 @@
 # Runs lint and the tests on every supported version of PHP, using the same script as running them locally
-# (testing/run-all-php-versions.sh), which tests each version in its own Docker container.
+# (testing/run-all-php-versions.sh), which tests each version in its own Docker container. Then checks that the
+# documents the package outputs are valid OpenAPI, with Redocly CLI (testing/validate-with-redocly.sh).
 # The README's "Tests" badge shows the result of the latest run on the default branch.
 name: Tests
 
@@ -41,3 +42,6 @@ jobs:
 
             - name: Run lint and the tests on every supported version of PHP
               run: sh testing/run-all-php-versions.sh
+
+            - name: Validate the documents the package outputs with Redocly CLI
+              run: sh testing/validate-with-redocly.sh

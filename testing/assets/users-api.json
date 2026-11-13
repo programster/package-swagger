@@ -44,7 +44,7 @@
                                     "$ref": "#/components/schemas/User"
                                 },
                                 "example": {
-                                    "id": "abc",
+                                    "id": "3f2b8c1e-9a4d-4e7b-b6f0-2d5c8e1a7f93",
                                     "name": "Bob"
                                 }
                             }
@@ -109,7 +109,7 @@
                                     "$ref": "#/components/schemas/User"
                                 },
                                 "example": {
-                                    "id": "abc",
+                                    "id": "3f2b8c1e-9a4d-4e7b-b6f0-2d5c8e1a7f93",
                                     "name": "Bob"
                                 }
                             }

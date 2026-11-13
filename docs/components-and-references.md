@@ -71,7 +71,7 @@ $manyUsers = new ContentMap(new MediaType(MimeType::JSON, new SchemaArray($user-
 The reference is output as `{"$ref": "#/components/schemas/User"}`.
 
 The package doesn't check that a referenced component is in the components, as a reference can be created before
-the components are. [swagger-cli](../README.md#validating-a-document) checks this when it validates the finished
+the components are. [Redocly CLI](../README.md#validating-a-document) checks this when it validates the finished
 document.
 
 ## The kinds of reference

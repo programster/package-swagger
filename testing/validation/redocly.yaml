@@ -1,0 +1,10 @@
+# The Redocly CLI configuration for testing/validate-with-redocly.sh. It uses Redocly's recommended rules, with every
+# warning made an error, so that a document the package outputs fails on anything Redocly finds wrong with it.
+extends:
+    - recommended-strict
+
+rules:
+    # These are advice about designing an API, rather than about the document being valid, and the test documents
+    # break them on purpose: they use example servers, and not every operation in them has an error response.
+    no-server-example.com: off
+    operation-4xx-response: off

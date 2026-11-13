@@ -98,4 +98,4 @@ The package can't check:
 - or that examples and defaults match their schemas.
 
 To check these, validate the finished document with a tool such as
-[swagger-cli](../README.md#validating-a-document).
+[Redocly CLI](../README.md#validating-a-document).

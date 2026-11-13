@@ -182,7 +182,7 @@ $testWholeDocument = function () : void {
         ),
     ));
 
-    $userExample = new ValueExample(['id' => "abc", 'name' => "Bob"]);
+    $userExample = new ValueExample(['id' => "3f2b8c1e-9a4d-4e7b-b6f0-2d5c8e1a7f93", 'name' => "Bob"]);
     $rateLimitHeader = Header::createFromSchema(new SchemaInt(), description: "Requests left.");
     $rateLimit = new MappedHeader("X-Rate-Limit", $rateLimitHeader);
 
